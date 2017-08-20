@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Security Sample</string>
+    <string name="home_empty_view_title">No keys available</string>
+    <string name="add_key_title">Add Key</string>
 </resources>

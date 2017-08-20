@@ -5,4 +5,8 @@
     <color name="colorAccent">#FF5722</color>
     <color name="textColorPrimary">#212121</color>
     <color name="textColorSecondary">#757575</color>
+
+    <color name="warning_color">#f4511e</color>
+    <color name="hint_color">#42000000</color>
+    <color name="success_color">#009688</color>
 </resources>

@@ -30,6 +30,22 @@ class CipherWrapper(val transformation: String) {
         var TRANSFORMATION_SYMMETRIC = "AES/CBC/PKCS7Padding"
 
         private val IV_SEPARATOR = "]"
+
+        /**
+         * Creates an [Cipher] instance with provided transformation.
+         *
+         * @throws RuntimeException if there is no algorithm defined with [transformation]
+         * @throws RuntimeException if there is no padding defined with [transformation]
+         */
+        fun createCipher(transformation: String): Cipher {
+            try {
+                return Cipher.getInstance(transformation)
+            } catch (e: NoSuchAlgorithmException) {
+                throw RuntimeException("Failed to get an instance of KeyGenerator", e)
+            } catch (e: NoSuchProviderException) {
+                throw RuntimeException("Failed to get an instance of KeyGenerator", e)
+            }
+        }
     }
 
     init {
@@ -41,8 +57,8 @@ class CipherWrapper(val transformation: String) {
      *
      * Note. Do not [cipher] instance with [android.hardware.fingerprint.FingerprintManager] api. Instead
      */
-    fun encrypt(data: String, key: Key): String? {
-        var cipher = createCipher(transformation)
+    fun encrypt(data: String, key: Key): String {
+//        var cipher = createCipher(transformation)
         cipher.init(Cipher.ENCRYPT_MODE, key)
 
         var result = ""
@@ -61,10 +77,10 @@ class CipherWrapper(val transformation: String) {
     fun decrypt(data: String, key: Key): String {
         var encodedString: String
 
-        var cipher = createCipher(transformation)
-        cipher.init(Cipher.DECRYPT_MODE, key)
+        //TODO Index Out
+//        var cipher = createCipher(transformation)
         if (key is SecretKey) {
-            val split = data.split(IV_SEPARATOR.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val split = data.split(IV_SEPARATOR.toRegex())
             val ivString = split[0]
             encodedString = split[1]
             val ivSpec = IvParameterSpec(Base64.decode(ivString, Base64.DEFAULT))
@@ -75,19 +91,9 @@ class CipherWrapper(val transformation: String) {
         }
 
         val encryptedData = Base64.decode(encodedString, Base64.DEFAULT)
-        val bytes = Base64.decode(encryptedData, Base64.DEFAULT)
+        val decodedData = cipher.doFinal(encryptedData)
 
-        return String(cipher.doFinal(bytes))
-    }
-
-    private fun createCipher(transformation: String): Cipher {
-        try {
-            return Cipher.getInstance(transformation)
-        } catch (e: NoSuchAlgorithmException) {
-            throw RuntimeException("Failed to get an instance of KeyGenerator", e)
-        } catch (e: NoSuchProviderException) {
-            throw RuntimeException("Failed to get an instance of KeyGenerator", e)
-        }
+        return String(decodedData)
     }
 }
 

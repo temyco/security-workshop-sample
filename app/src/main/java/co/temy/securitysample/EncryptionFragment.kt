@@ -51,9 +51,13 @@ class EncryptionFragment : Fragment() {
         val cipher = CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC)
 
         if (symmetricKey != null) {
+
+            val encryptedData = cipher.encrypt(TEST_PASSWORD, symmetricKey)
+            val decryptedData = cipher.decrypt(encryptedData, symmetricKey)
+
             Log.i("EncryptionFragment", "Input Value : ${TEST_PASSWORD}")
-            Log.i("EncryptionFragment", "Encrypted Value : ${cipher.encrypt(TEST_PASSWORD, symmetricKey)}")
-            Log.i("EncryptionFragment", "Decrypted Value : ${cipher.decrypt(TEST_PASSWORD, symmetricKey)}")
+            Log.i("EncryptionFragment", "Encrypted Value : $encryptedData")
+            Log.i("EncryptionFragment", "Decrypted Value : ${decryptedData}")
         }
     }
 }

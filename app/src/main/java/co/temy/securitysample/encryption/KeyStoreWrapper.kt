@@ -39,6 +39,7 @@ class KeyStoreWrapper {
         val keyGenerator = createKeyGenerator(KeyProperties.KEY_ALGORITHM_AES)
 
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setKeySize(256)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                 // Require the user to authenticate with a fingerprint to authorize every use
                 // of the key

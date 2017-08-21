@@ -44,7 +44,7 @@ val keyData = keyStore.aliases().toList().map { KeyData(it, keyStore.getCreation
 - Prepare `KeyGenerator` instance for generating and saving `AES` symmetric keys using `AndroidKeyStore` provider:
 
 ```kotlin
-val KeyGenerator = KeyGenerator.getInstance(algorithm, "AndroidKeyStore")
+val generator = KeyGenerator.getInstance(algorithm, "AndroidKeyStore")
 
 
 val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
@@ -53,12 +53,34 @@ val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT o
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                 .setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
 
-keyGenerator?.init(builder.build())
+generator?.init(builder.build())
 
 // This will create and save key to KeyStore
 val key = keyGenerator?.generateKey()
 ```
 
+- Prepare `KeyPairGenerator` instance for generating and saving `RSA` asymmetric key pairs using `AndroidKeyStore` provider:
+
+```kotlin
+val generator = KeyPairGenerator.getInstance(keyProps.mKeyType, provider);
+
+val startDate = Calendar.getInstance()
+val endDate = Calendar.getInstance()
+endDate.add(Calendar.YEAR, 20)
+
+val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setCertificateSerialNumber(BigInteger.ONE)
+                .setCertificateSubject(X500Principal("CN=${alias} CA Certificate"))
+                .setCertificateNotBefore(startDate.time)
+                .setCertificateNotAfter(endDate.time)
+                .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+
+generator.initialize(generator.build())
+
+// This will create and save key to KeyStore
+val keyPair = generator?.generateKeyPair()
+```
 ## Resources
 
 ### Kotlin
@@ -70,6 +92,7 @@ val key = keyGenerator?.generateKey()
 - http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html
 - https://developer.android.com/training/articles/keystore.html
 - https://source.android.com/security/keystore/
+- https://github.com/yakivmospan/scytale
 
 ### Fingerprint & Credentials API
 

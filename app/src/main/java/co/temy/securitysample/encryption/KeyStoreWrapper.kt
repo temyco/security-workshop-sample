@@ -5,11 +5,13 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import java.io.IOException
+import java.math.BigInteger
 import java.security.*
 import java.security.cert.CertificateException
 import java.util.*
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.security.auth.x500.X500Principal
 
 class KeyStoreWrapper {
 
@@ -29,7 +31,7 @@ class KeyStoreWrapper {
     }
 
     /**
-     * Create synchronous [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
+     * Create symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
      * [KeyProperties.ENCRYPTION_PADDING_PKCS7].
      */
     @TargetApi(Build.VERSION_CODES.M)
@@ -66,6 +68,39 @@ class KeyStoreWrapper {
         }
     }
 
+    /**
+     * Create asymmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
+     * [KeyProperties.ENCRYPTION_PADDING_PKCS7].
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    fun createAsymmetricKey(alias: String, userAuthenticationRequired: Boolean, invalidatedByBiometricEnrollment: Boolean): KeyPair? {
+        val generator = createKeyPairGenerator(KeyProperties.KEY_ALGORITHM_RSA)
+
+        val startDate = Calendar.getInstance()
+        val endDate = Calendar.getInstance()
+        endDate.add(Calendar.YEAR, 20)
+        val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setCertificateSerialNumber(BigInteger.ONE)
+                .setCertificateSubject(X500Principal("CN=${alias} CA Certificate"))
+                .setCertificateNotBefore(startDate.time)
+                .setCertificateNotAfter(endDate.time)
+                .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+
+        try {
+            generator?.initialize(builder.build())
+            return generator?.generateKeyPair()
+        } catch (e: NoSuchAlgorithmException) {
+            throw RuntimeException(e)
+        } catch (e: InvalidAlgorithmParameterException) {
+            throw RuntimeException(e)
+        } catch (e: CertificateException) {
+            throw RuntimeException(e)
+        } catch (e: IOException) {
+            throw RuntimeException(e)
+        }
+    }
+
     private fun createKeystore(): KeyStore {
         try {
             val keyStore = KeyStore.getInstance("AndroidKeyStore")
@@ -80,6 +115,17 @@ class KeyStoreWrapper {
     private fun createKeyGenerator(algorithm: String): KeyGenerator? {
         try {
             return KeyGenerator.getInstance(algorithm, "AndroidKeyStore")
+        } catch (e: NoSuchAlgorithmException) {
+            throw RuntimeException("Failed to get an instance of KeyGenerator", e)
+        } catch (e: NoSuchProviderException) {
+            throw RuntimeException("Failed to get an instance of KeyGenerator", e)
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private fun createKeyPairGenerator(algorithm: String): KeyPairGenerator? {
+        try {
+            return KeyPairGenerator.getInstance(algorithm, "AndroidKeyStore")
         } catch (e: NoSuchAlgorithmException) {
             throw RuntimeException("Failed to get an instance of KeyGenerator", e)
         } catch (e: NoSuchProviderException) {

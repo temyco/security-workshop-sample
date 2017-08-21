@@ -2,10 +2,11 @@
 
 buildscript {
     ext.kotlin_version = '1.1.4-2'
-    ext.gms_version = '11.2.0'
+    ext.gms_version = '10.0.1'
     ext.support_version = '26.0.1'
     ext.constraint_layout_version = '1.0.2'
     ext.build_tool_version = '26.0.1'
+    ext.safetynethelper_version = '0.3.0'
     ext.junit_version = '4.12'
     ext.test_runner_version = '1.0.0'
     ext.test_espresso_version = '3.0.0'
@@ -30,6 +31,9 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven {
+            url "https://jitpack.io"
+        }
     }
 }
 

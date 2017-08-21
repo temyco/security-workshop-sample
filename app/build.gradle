@@ -29,6 +29,13 @@ android {
         }
     }
 }
+def gms = gms_version
+configurations.all {
+    resolutionStrategy {
+        force "com.google.android.gms:play-services-base:$gms"
+        force "com.google.android.gms:play-services-safetynet:$gms"
+    }
+}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

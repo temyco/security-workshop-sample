@@ -44,6 +44,7 @@ class SplashActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.exit_btn, { _, _ -> System.exit(0) })
                     .setNegativeButton(R.string.proceed_btn, { _, _ -> goCheckWithLibrary() })
                     .setMessage(R.string.gms_not_ready_msg)
+                    .setCancelable(false)
                     .create()
                     .show()
 
@@ -52,9 +53,14 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPostResume() {
-        super.onPostResume()
+    override fun onStart() {
+        super.onStart()
         checkSafeNet()
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        System.exit(0)
     }
 
     private fun goCheckWithLibrary () {
@@ -82,6 +88,7 @@ class SplashActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.exit_btn, { _, _ -> System.exit(0) })
                     .setNegativeButton(R.string.proceed_btn, { _, _ -> goNextWithDelay() })
                     .setMessage(R.string.insecure_msg)
+                    .setCancelable(false)
                     .create()
                     .show()
             showLoading(false, getString(R.string.insecure_msg))
@@ -91,6 +98,7 @@ class SplashActivity : AppCompatActivity() {
                     .setTitle(R.string.warning_ttl)
                     .setPositiveButton(R.string.exit_btn, { _, _ -> System.exit(0) })
                     .setMessage(R.string.completely_insecure_msg)
+                    .setCancelable(false)
             showLoading(false, getString(R.string.completely_insecure_msg))
             if (BuildConfig.DEBUG) {
                 builder.setNegativeButton(R.string.proceed_btn, { _, _ -> goNextWithDelay() })
@@ -107,6 +115,7 @@ class SplashActivity : AppCompatActivity() {
                 .setPositiveButton(R.string.exit_btn, { _, _ -> System.exit(0) })
                 .setNegativeButton(R.string.proceed_btn, { _, _ -> goNextWithDelay() })
                 .setMessage(errorMessage)
+                .setCancelable(false)
                 .create()
                 .show()
     }

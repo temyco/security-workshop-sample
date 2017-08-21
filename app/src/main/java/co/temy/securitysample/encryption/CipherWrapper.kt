@@ -53,12 +53,12 @@ class CipherWrapper(val transformation: String) {
     }
 
     /**
-     * Encrypts data using IV vector.
+     * Encrypts data using IV vector for Symmetric keys.
      *
-     * Note. Do not [cipher] instance with [android.hardware.fingerprint.FingerprintManager] api. Instead
+     * Note. Do not [cipher] instance with [android.hardware.fingerprint.FingerprintManager] api. Instead use
+     * companion [createCipher] method to get [Cipher] instance.
      */
     fun encrypt(data: String, key: Key): String {
-//        var cipher = createCipher(transformation)
         cipher.init(Cipher.ENCRYPT_MODE, key)
 
         var result = ""
@@ -74,11 +74,15 @@ class CipherWrapper(val transformation: String) {
         return result
     }
 
+    /**
+     * Decrypts data using IV vector for Symmetric keys.
+     *
+     * Note. Do not [cipher] instance with [android.hardware.fingerprint.FingerprintManager] api. Instead use
+     * companion [createCipher] method to get [Cipher] instance.
+     */
     fun decrypt(data: String, key: Key): String {
         var encodedString: String
 
-        //TODO Index Out
-//        var cipher = createCipher(transformation)
         if (key is SecretKey) {
             val split = data.split(IV_SEPARATOR.toRegex())
             val ivString = split[0]

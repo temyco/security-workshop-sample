@@ -1,10 +1,10 @@
 <resources>
 
     <string name="app_name">Security Sample</string>
-    <string name="keys_empty_view_title">No keys available</string>
+    <string name="passwords_empty_view_title">No passwords available</string>
     <string name="encryption_empty_view_title">
         Create at least one key \n to start encrypting</string>
-    <string name="add_key_title">Add Key</string>
+    <string name="add_secret_title">Add Secret</string>
 
     <!--Fingerprint Sample Dialog strings-->
     <string name="cancel">Cancel</string>
@@ -23,8 +23,26 @@
     <string name="use_fingerprint_in_future">Use fingerprint in the future</string>
     <string name="use_fingerprint_to_authenticate_key">use_fingerprint_to_authenticate_key</string>
     <string name="description_fingerprint_icon">Fingerprint icon</string>
-    <string name="home_keys_tab_title">Keys</string>
+    <string name="home_passwords_tab_title">Passwords</string>
     <string name="home_encryption_tab_title">Encryption</string>
+    <string name="title_activity_sign_up">Sign Up</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Enter password</string>
+    <string name="action_sign_up">Next</string>
+    <string name="action_sign_up_short">Sign up</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+
+    <!-- Strings related to add secret -->
+    <string name="prompt_alias">Alias</string>
+    <string name="prompt_secret">Secret</string>
+    <string name="action_save">Save encrypted</string>
+    <string name="action_save_in_short">Save</string>
+    <string name="error_incorrect_alias">Alias can not be empty</string>
+    <string name="error_duplicated_alias">Alias already exists</string>
 
     <!--Progress-->
     <string name="check_environment_lab">Environment\'s being checked</string>

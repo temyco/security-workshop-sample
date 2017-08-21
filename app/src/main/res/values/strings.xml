@@ -44,4 +44,13 @@
     <string name="error_incorrect_alias">Alias can not be empty</string>
     <string name="error_duplicated_alias">Alias already exists</string>
 
+    <!--Progress-->
+    <string name="check_environment_lab">Environment\'s being checked</string>
+    <string name="warning_ttl">Warning</string>
+    <string name="gms_not_ready_msg">GMS not ready</string>
+    <string name="exit_btn">Exit</string>
+    <string name="proceed_btn">Proceed Anyway</string>
+    <string name="secure_success_msg">Just Perfect! We are in Secure Environment</string>
+    <string name="insecure_msg">Security is good enough, but some issue exist</string>
+    <string name="completely_insecure_msg">Security violation detected</string>
 </resources>

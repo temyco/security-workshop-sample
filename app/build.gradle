@@ -5,31 +5,47 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion max_sdk_version
+    buildToolsVersion "$build_tool_version"
     defaultConfig {
         applicationId "co.temy.securitysample"
-        minSdkVersion 18
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion min_sdk_version
+        targetSdkVersion max_sdk_version
+        versionCode app_version_number
+        versionName "$app_version_name"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "GOOGLE_VERIFICATION_API_KEY", '"AIzaSyAXp_YJBHPI4FLfJrlgjfFjMXbIVZWeKzk"')
         }
+        debug {
+            applicationIdSuffix ".debug"
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "GOOGLE_VERIFICATION_API_KEY", '"AIzaSyAHtzX19lqT_nkuORRuOOa9abuQ9f3rZhk"')
+        }
+    }
+}
+def gms = gms_version
+configurations.all {
+    resolutionStrategy {
+        force "com.google.android.gms:play-services-base:$gms"
+        force "com.google.android.gms:play-services-safetynet:$gms"
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    implementation 'com.android.support:appcompat-v7:26.0.1'
-    implementation 'com.android.support:design:26.0.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.0'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.0'
+    implementation "com.android.support:appcompat-v7:$support_version"
+    implementation "com.android.support:design:$support_version"
+    implementation "com.android.support.constraint:constraint-layout:$constraint_layout_version"
+    implementation "com.google.android.gms:play-services-base:$gms_version"
+    implementation "com.github.scottyab:safetynethelper:$safetynethelper_version"
+    testImplementation "junit:junit:$junit_version"
+    androidTestImplementation "com.android.support.test:runner:$test_runner_version"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$test_espresso_version"
 }

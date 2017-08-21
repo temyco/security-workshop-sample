@@ -21,7 +21,14 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onPostResume() {
         super.onPostResume()
-        handler.postDelayed({ startHomeActivity() }, HOME_SCREEN_START_DELAY)
+        handler.postDelayed( {
+                    if(Storage(this).isPasswordSet()) {
+                        startHomeActivity()
+                    } else {
+                        startSignUpActivity();
+                    }
+
+                }, HOME_SCREEN_START_DELAY)
     }
 
     override fun onPause() {
@@ -30,7 +37,15 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun startHomeActivity() {
-        val intent = Intent(this, HomeActivity::class.java)
+        startActivity(HomeActivity::class.java)
+    }
+
+    private fun startSignUpActivity() {
+        startActivity(SignUpActivity::class.java)
+    }
+
+    private fun startActivity(cls:Class<*>) {
+        val intent = Intent(this, cls)
         startActivity(intent)
         finish()
     }

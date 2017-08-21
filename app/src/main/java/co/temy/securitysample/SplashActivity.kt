@@ -15,6 +15,7 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.scottyab.safetynet.SafetyNetHelper
 import com.scottyab.safetynet.SafetyNetResponse
+import com.scottyab.safetynet.Utils
 
 class SplashActivity : AppCompatActivity() {
 
@@ -33,6 +34,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+        Log.d(TAG, "AndroidAPIKEY: " + Utils.getSigningKeyFingerprint(this) + ";" + packageName)
     }
 
     private fun checkSafeNet() {

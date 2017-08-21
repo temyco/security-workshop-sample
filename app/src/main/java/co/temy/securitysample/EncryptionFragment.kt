@@ -6,7 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import co.temy.securitysample.encryption.Crypto
+import co.temy.securitysample.encryption.KeyStoreWrapper
 
 class EncryptionFragment : Fragment() {
 
@@ -27,14 +27,14 @@ class EncryptionFragment : Fragment() {
     }
 
     private fun printAliases() {
-        val crypto = Crypto(activity.applicationContext)
+        val crypto = KeyStoreWrapper()
         crypto.getAllKeyAliases()
-                .sortedBy{it.creationDate}
+                .sortedBy { it.creationDate }
                 .forEach { Log.i("EncryptionFragment", "${it} \n") }
     }
 
     private fun createKey() {
-        val crypto = Crypto(activity.applicationContext)
-        crypto.createSymmetricKey("Test-${++keyNumber}", false)
+        val crypto = KeyStoreWrapper()
+        crypto.createSymmetricKey("Test-${++keyNumber}", false, false)
     }
 }

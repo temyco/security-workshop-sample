@@ -29,9 +29,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:id="@+id/btnAddKey" app:fabSize="normal" app:layout_constraintEnd_toEndOf="parent"
+            android:id="@+id/btnAddPassword" app:fabSize="normal" app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginEnd="0dp"
-            android:onClick="onAddKeyClick"
+            android:onClick="onAddPasswordClick"
             android:layout_marginBottom="0dp" app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"/>
     <View
             android:layout_width="0dp"

@@ -1,10 +1,10 @@
 <resources>
 
     <string name="app_name">Security Sample</string>
-    <string name="keys_empty_view_title">No keys available</string>
+    <string name="passwords_empty_view_title">No passwords available</string>
     <string name="encryption_empty_view_title">
         Create at least one key \n to start encrypting</string>
-    <string name="add_key_title">Add Key</string>
+    <string name="add_password_title">Add Password</string>
 
     <!--Fingerprint Sample Dialog strings-->
     <string name="cancel">Cancel</string>
@@ -23,7 +23,7 @@
     <string name="use_fingerprint_in_future">Use fingerprint in the future</string>
     <string name="use_fingerprint_to_authenticate_key">use_fingerprint_to_authenticate_key</string>
     <string name="description_fingerprint_icon">Fingerprint icon</string>
-    <string name="home_keys_tab_title">Keys</string>
+    <string name="home_passwords_tab_title">Passwords</string>
     <string name="home_encryption_tab_title">Encryption</string>
 
 </resources>

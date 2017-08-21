@@ -15,14 +15,31 @@ We are focusing on the newest tech stuck and environment like Kontlin, to be abl
 ## Goals
 
 - Build application based on Android Fingerprint Sample
-- Use encryption to create/save keys, encrypt/decrypt data
-- Use fingerprint to allow to add/delete keys
-- Use confirm credentials to protect key list
-- Be as simple as possible
+- Use JCA to show how to use encryption in Android
+- Use encryption to save protected passwords
+- Use fingerprint get access to protected keys
+- Use confirm credentials to protect application overall
+- Keep it simple
 
 ## Workflow & Design
 
 Follow [this link](https://xd.adobe.com/view/25652e67-9814-4633-96fa-1ed8963bcfc0/) to see Sample application Design and try some basic workflow.
+
+## Task list
+
+- Ensure that device is secured with password
+- Ensure that fingerprint was added
+- Support devices without fingerprint
+- Provide possibility to enter user password
+- Create user password hash and save it
+- Use fingerprint api to protect password
+- Add possibility to encrypt and decrypt user passwords with fingerprint api
+- Add possibility to save encrypted passwords
+- Add possibility to save encrypted passwords
+- Add possibility to retrieve saved passwords
+- Add “Test Encryption” screen
+- Add possibility to generate different key types
+- Add possibility to encrypt/decrypt data with generated keys
 
 ## Gists
 
@@ -81,6 +98,7 @@ generator.initialize(generator.build())
 // This will create and save key to KeyStore
 val keyPair = generator?.generateKeyPair()
 ```
+
 ## Resources
 
 ### Kotlin
@@ -97,6 +115,7 @@ val keyPair = generator?.generateKeyPair()
 ### Fingerprint & Credentials API
 
 - https://developer.android.com/about/versions/marshmallow/android-6.0.html#fingerprint-authentication
+- https://developer.android.com/about/versions/marshmallow/android-6.0.html#confirm-credential
 - https://github.com/googlesamples/android-FingerprintDialog
 - https://www.youtube.com/watch?v=VOn7VrTRlA4
 

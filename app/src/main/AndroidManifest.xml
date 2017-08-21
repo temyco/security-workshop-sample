@@ -22,7 +22,7 @@
 
         <activity android:name=".HomeActivity"/>
         <activity android:name=".AddKeyActivity"
-                  android:label="@string/add_key_title"
+                  android:label="@string/add_password_title"
                   android:parentActivityName=".HomeActivity">
         </activity>
     </application>

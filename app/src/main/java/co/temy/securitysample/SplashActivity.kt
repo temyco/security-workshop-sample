@@ -29,7 +29,7 @@ class SplashActivity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
     }
 
-    fun startHomeActivity() {
+    private fun startHomeActivity() {
         val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
         finish()

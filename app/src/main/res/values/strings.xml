@@ -31,8 +31,15 @@
     <string name="lock_settings">Settings</string>
     <string name="lock_title">Lock Screen</string>
     <string name="lock_body">
-        Secure lock screen hasn\'t set up. This app requires to register at
-        least one fingerprint. To continue working with this app, please got to Settings and register
-        fingerprint
+        Secure lock screen hasn\'t set up. To continue working with this app,
+        please got to Settings and set a lock screen method.
+    </string>
+
+    <string name="finger_exit">Exit</string>
+    <string name="finger_settings">Settings</string>
+    <string name="finger_title">Fingerprint</string>
+    <string name="finger_body">
+        This app requires to register at least one fingerprint.
+        To continue working with this app, please got to Settings and register fingerprint.
     </string>
 </resources>

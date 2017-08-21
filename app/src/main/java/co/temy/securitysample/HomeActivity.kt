@@ -2,6 +2,7 @@ package co.temy.securitysample
 
 import android.app.KeyguardManager
 import android.content.Intent
+import android.hardware.fingerprint.FingerprintManager
 import android.os.Bundle
 import android.provider.Settings
 import android.support.design.widget.BottomNavigationView
@@ -72,6 +73,32 @@ class HomeActivity : AppCompatActivity() {
             })
 
             builder.setNegativeButton(R.string.lock_exit, { d, i ->
+                finish()
+            })
+
+            builder.show()
+        } else {
+            checkFingerprintSupport()
+        }
+    }
+
+    private fun checkFingerprintSupport() {
+        val fingerPrintManager = this.getSystemService(android.content.Context.FINGERPRINT_SERVICE)
+                as FingerprintManager
+
+        val showAlert = fingerPrintManager.isHardwareDetected &&
+                        !fingerPrintManager.hasEnrolledFingerprints()
+
+        if (showAlert) {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(R.string.finger_title)
+            builder.setMessage(R.string.finger_body)
+
+            builder.setPositiveButton(R.string.finger_settings, { d, i ->
+                openSecuritySettings()
+            })
+
+            builder.setNegativeButton(R.string.finger_exit, { d, i ->
                 finish()
             })
 

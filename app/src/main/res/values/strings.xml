@@ -4,7 +4,7 @@
     <string name="passwords_empty_view_title">No passwords available</string>
     <string name="encryption_empty_view_title">
         Create at least one key \n to start encrypting</string>
-    <string name="add_password_title">Add Password</string>
+    <string name="add_secret_title">Add Secret</string>
 
     <!--Fingerprint Sample Dialog strings-->
     <string name="cancel">Cancel</string>
@@ -35,8 +35,13 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
+
+    <!-- Strings related to add secret -->
+    <string name="prompt_alias">Alias</string>
+    <string name="prompt_secret">Secret</string>
+    <string name="action_save">Save encrypted</string>
+    <string name="action_save_in_short">Save</string>
+    <string name="error_incorrect_alias">Alias can not be empty</string>
+    <string name="error_duplicated_alias">Alias already exists</string>
 
 </resources>

@@ -46,7 +46,7 @@ class SignUpActivity : AppCompatActivity() {
         var focusView: View? = null
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(passwordString) && !isPasswordValid(passwordString)) {
+        if (TextUtils.isEmpty(passwordString) || !isPasswordValid(passwordString)) {
             password.error = getString(R.string.error_invalid_password)
             focusView = password
             cancel = true

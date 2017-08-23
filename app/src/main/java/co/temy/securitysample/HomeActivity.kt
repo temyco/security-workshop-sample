@@ -39,7 +39,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     fun onAddPasswordClick(view: View) {
-        val intent = Intent(this, AddKeyActivity::class.java)
+        val intent = Intent(this, AddSecretActivity::class.java)
         startActivity(intent)
     }
 

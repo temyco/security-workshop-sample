@@ -4,7 +4,7 @@
     <string name="passwords_empty_view_title">No passwords available</string>
     <string name="encryption_empty_view_title">
         Create at least one key \n to start encrypting</string>
-    <string name="add_password_title">Add Password</string>
+    <string name="add_secret_title">Add Secret</string>
 
     <!--Fingerprint Sample Dialog strings-->
     <string name="cancel">Cancel</string>
@@ -25,6 +25,34 @@
     <string name="description_fingerprint_icon">Fingerprint icon</string>
     <string name="home_passwords_tab_title">Passwords</string>
     <string name="home_encryption_tab_title">Encryption</string>
+    <string name="title_activity_sign_up">Sign Up</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Enter password</string>
+    <string name="action_sign_up">Next</string>
+    <string name="action_sign_up_short">Sign up</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+
+    <!-- Strings related to add secret -->
+    <string name="prompt_alias">Alias</string>
+    <string name="prompt_secret">Secret</string>
+    <string name="action_save">Save encrypted</string>
+    <string name="action_save_in_short">Save</string>
+    <string name="error_incorrect_alias">Alias can not be empty</string>
+    <string name="error_duplicated_alias">Alias already exists</string>
+
+    <!--Progress-->
+    <string name="check_environment_lab">Environment\'s being checked</string>
+    <string name="warning_ttl">Warning</string>
+    <string name="gms_not_ready_msg">GMS not ready</string>
+    <string name="exit_btn">Exit</string>
+    <string name="proceed_btn">Proceed Anyway</string>
+    <string name="secure_success_msg">Just Perfect! We are in Secure Environment</string>
+    <string name="insecure_msg">Security is good enough, but some issue exist</string>
+    <string name="completely_insecure_msg">Security violation detected</string>
 
     <!--Lock Check strings -->
     <string name="lock_exit">Exit</string>
@@ -42,4 +70,5 @@
         This app requires to register at least one fingerprint.
         To continue working with this app, please got to Settings and register fingerprint.
     </string>
+
 </resources>

@@ -13,15 +13,15 @@ class AddSecretActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_secret)
 
-            secret.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
-                if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    saveSecret()
-                    return@OnEditorActionListener true
-                }
-                false
-            })
+        secret.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
+            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                saveSecret()
+                return@OnEditorActionListener true
+            }
+            false
+        })
 
-            saveSecret.setOnClickListener { saveSecret() }
+        saveSecret.setOnClickListener { saveSecret() }
     }
 
     fun saveSecret() {

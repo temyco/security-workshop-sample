@@ -1,47 +1,42 @@
-# Security Sample Application
+# Secrets Keeper
 
-This application should be build on top of API's 18+, such as AndroidKeyStore, Fingerprint API, Confirm Credentials API.
+Secrets Keeper is a simple secure application that uses Android Key Store API, Fingerprint API and Confirm Credentials API to keep your secrets in safe.
 
+> _**Note.** This project is work in progress. Design, Workflow and end Goals can be changed during development._
 
 ## Environment setup
 
-We are focusing on the newest tech stuck and environment like Kontlin, to be able to use this application you need to :
+To be able to build this project on your local machine, please follow the below instructions:
 
 - Download and install latest [Android Studio 3.0](https://developer.android.com/studio/preview/index.html)
 - Download and install all dependencies that Gradle ask's you to
 - Download and install Android Virtual Device(AVD) with API 23, using build in Android Virtual Device Manager from Android Studio
-- To cover compatibility issues and support newest features later you will also need to install AVD API 18 and AVD API 24+
+- To cover compatibility issues and support newest features, probably, you will also need to install AVD API 18 and AVD API 24+
+
+## Technologies Stack
+
+- Android 18+
+- Kotlin
+- AndroidKeyStore API
+- Fingerprint API
+- Confirm Credentials API
+- Safety Net API
 
 ## Goals
 
 - Build application based on Android Fingerprint Sample
 - Use JCA to show how to use encryption in Android
-- Use encryption to save protected passwords
-- Use fingerprint get access to protected keys
+- Use encryption to protect secrets
+- Use fingerprint get access to protected secrets
 - Use confirm credentials to protect application overall
 - Keep it simple
 
-## Workflow & Design
+## Launch Workflow
 
-Follow [this link](https://xd.adobe.com/view/25652e67-9814-4633-96fa-1ed8963bcfc0/) to see Sample application Design and try some basic workflow.
+![](assets/launch-workflow.jpg)
 
-## Task list
 
-- Ensure that device is secured with password
-- Ensure that fingerprint was added
-- Support devices without fingerprint
-- Provide possibility to enter user password
-- Create user password hash and save it
-- Use fingerprint api to protect password
-- Add possibility to encrypt and decrypt user passwords with fingerprint api
-- Add possibility to save encrypted passwords
-- Add possibility to save encrypted passwords
-- Add possibility to retrieve saved passwords
-- Add “Test Encryption” screen
-- Add possibility to generate different key types
-- Add possibility to encrypt/decrypt data with generated keys
-
-## Gists
+## Security Code Snippets
 
 - Create `KeyStore`instance and prepare it for working using `AndroidKeyStore` provider:
 

@@ -8,18 +8,17 @@ import java.util.*
 
 /**
  * Stores application data like password hash.
- * Created by denys on 8/21/17.
  */
 class Storage constructor(context: Context) {
-    val settings: SharedPreferences
-    val secrets: SharedPreferences
+
+    private val settings: SharedPreferences
+    private val secrets: SharedPreferences
 
     data class SecretData(val alias: String, val secret: String)
 
     companion object {
         private val STORAGE_SETTINGS: String = "settings"
-        private val STORAGE_PASSWORD_HASH: String = "pwd_hash"
-
+        private val STORAGE_PASSWORD_HASH: String = "password_hash"
         private val STORAGE_SECRETS: String = "secrets"
     }
 
@@ -45,7 +44,7 @@ class Storage constructor(context: Context) {
         secrets.edit().putString(secret.alias, secret.secret).apply()
     }
 
-    fun getSecrets() : List<SecretData> {
+    fun getSecrets(): List<SecretData> {
         val secretsList = ArrayList<SecretData>()
         val secretsAliases = secrets.all
         secretsAliases.forEach { secretsList.add(SecretData(it.key, it.value.toString())) }
@@ -56,7 +55,6 @@ class Storage constructor(context: Context) {
         val md = MessageDigest.getInstance("SHA-512")
         val passwordBytes = password.toByteArray(Charsets.UTF_16)
         val passwordHash = md.digest(passwordBytes)
-        val passwordHashString = Base64.encodeToString(passwordHash, Base64.DEFAULT)
-        return passwordHashString
+        return Base64.encodeToString(passwordHash, Base64.DEFAULT)
     }
 }

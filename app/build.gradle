@@ -6,15 +6,16 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion max_sdk_version
-    buildToolsVersion "$build_tool_version"
+    buildToolsVersion build_tool_version
     defaultConfig {
         applicationId "co.temy.securitysample"
         minSdkVersion min_sdk_version
         targetSdkVersion max_sdk_version
         versionCode app_version_number
-        versionName "$app_version_name"
+        versionName app_version_name
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -28,18 +29,33 @@ android {
             buildConfigField("String", "GOOGLE_VERIFICATION_API_KEY", '"AIzaSyAHtzX19lqT_nkuORRuOOa9abuQ9f3rZhk"')
         }
     }
+
+    flavorDimensions "production"
+
+    productFlavors {
+        production {
+            dimension "production"
+            buildConfigField("boolean", "IS_SAFETY_NET_ENABLED", "false")
+        }
+
+        withSafetyNet {
+            dimension "production"
+            buildConfigField("boolean", "IS_SAFETY_NET_ENABLED", "true")
+        }
+    }
+
 }
-def gms = gms_version
+
 configurations.all {
     resolutionStrategy {
-        force "com.google.android.gms:play-services-base:$gms"
-        force "com.google.android.gms:play-services-safetynet:$gms"
+        force "com.google.android.gms:play-services-base:$gms_version"
+        force "com.google.android.gms:play-services-safetynet:$gms_version"
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation "com.android.support:appcompat-v7:$support_version"
     implementation "com.android.support:design:$support_version"
     implementation "com.android.support.constraint:constraint-layout:$constraint_layout_version"

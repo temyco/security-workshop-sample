@@ -12,7 +12,6 @@ import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 
@@ -64,21 +63,14 @@ class HomeActivity : AppCompatActivity() {
 
     private fun checkLockScreen() {
         val kgManager = this.getSystemService(android.content.Context.KEYGUARD_SERVICE) as KeyguardManager
-
-        if(!kgManager.isKeyguardSecure) {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle(R.string.lock_title)
-            builder.setMessage(R.string.lock_body)
-
-            builder.setPositiveButton(R.string.lock_settings, { d, i ->
-                openLockScreenSettings()
-            })
-
-            builder.setNegativeButton(R.string.lock_exit, { d, i ->
-                finish()
-            })
-
-            builder.show()
+        if (!kgManager.isKeyguardSecure) {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.lock_title)
+                    .setMessage(R.string.lock_body)
+                    .setPositiveButton(R.string.lock_settings, { d, i -> openLockScreenSettings() })
+                    .setNegativeButton(R.string.lock_exit, { d, i -> finish() })
+                    .setCancelable(BuildConfig.DEBUG)
+                    .show()
         } else {
             checkFingerprintSupport()
         }
@@ -87,26 +79,17 @@ class HomeActivity : AppCompatActivity() {
     private fun checkFingerprintSupport() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
 
-        val fingerPrintManager = this.getSystemService(android.content.Context.FINGERPRINT_SERVICE)
-                as FingerprintManager
-
-        val showAlert = fingerPrintManager.isHardwareDetected
-                        && !fingerPrintManager.hasEnrolledFingerprints()
+        val fingerPrintManager = this.getSystemService(android.content.Context.FINGERPRINT_SERVICE) as FingerprintManager
+        val showAlert = fingerPrintManager.isHardwareDetected && !fingerPrintManager.hasEnrolledFingerprints()
 
         if (showAlert) {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle(R.string.finger_title)
-            builder.setMessage(R.string.finger_body)
-
-            builder.setPositiveButton(R.string.finger_settings, { d, i ->
-                openSecuritySettings()
-            })
-
-            builder.setNegativeButton(R.string.finger_exit, { d, i ->
-                finish()
-            })
-
-            builder.show()
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.finger_title)
+                    .setMessage(R.string.finger_body)
+                    .setPositiveButton(R.string.finger_settings, { d, i -> openSecuritySettings() })
+                    .setNegativeButton(R.string.finger_exit, { d, i -> finish() })
+                    .setCancelable(BuildConfig.DEBUG)
+                    .show()
         }
     }
 

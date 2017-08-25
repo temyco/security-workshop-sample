@@ -27,14 +27,14 @@
     <string name="home_encryption_tab_title">Encryption</string>
     <string name="title_activity_sign_up">Sign Up</string>
 
-    <!-- Strings related to login -->
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Enter password</string>
-    <string name="action_sign_up">Next</string>
-    <string name="action_sign_up_short">Sign up</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
+    <!-- Strings related to sign up -->
+    <string name="sign_up_prompt_password">Enter password</string>
+    <string name="sign_up_prompt_confirm_password">Confirm password</string>
+    <string name="sign_up_action_done">Done</string>
+    <string name="sign_up_action_done_short">Done</string>
+
+    <string name="sign_up_error_invalid_password">Password is too short</string>
+    <string name="sign_up_error_incorrect_password">Password is incorrect</string>
 
     <!-- Strings related to add secret -->
     <string name="prompt_alias">Alias</string>

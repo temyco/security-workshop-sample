@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_sign_up.*
 
 /**
@@ -17,48 +16,47 @@ class SignUpActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
-        // Set up the login form.
-        password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                attemptSignUp()
-                return@OnEditorActionListener true
-            }
-            false
-        })
 
-        signUp.setOnClickListener { attemptSignUp() }
+        // Set up the sing up form.
+        passwordView.setOnEditorActionListener({ _, id, _ -> onEditorActionClick(id) })
+        doneView.setOnClickListener { attemptToSignUp() }
     }
 
+    private fun onEditorActionClick(id: Int): Boolean = when (id) {
+        EditorInfo.IME_ACTION_DONE, EditorInfo.IME_NULL -> {
+            attemptToSignUp()
+            true
+        }
+        else -> false
+    }
 
     /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors errors are presented and no actual login attempt
-     * is made.
+     * Attempts to sign up with password specified by the sing up form.
+     * If there are form errors errors are presented and no actual sing up attempt is made.
      */
-    private fun attemptSignUp() {
-        // Reset errors.
-        password.error = null
+    private fun attemptToSignUp() {
+        passwordHolderView.error = null
+        confirmPasswordHolderView.error = null
 
-        // Store values at the time of the login attempt.
-        val passwordString = password.text.toString()
+        val passwordString = passwordView.text.toString()
+        val confirmPasswordString = confirmPasswordView.text.toString()
 
         var cancel = false
         var focusView: View? = null
 
-        // Check for a valid password, if the user entered one.
-        if (TextUtils.isEmpty(passwordString) || !isPasswordValid(passwordString)) {
-            password.error = getString(R.string.error_invalid_password)
-            focusView = password
+        if (!isPasswordValid(passwordString)) {
+            passwordHolderView.error = getString(R.string.sign_up_error_invalid_password)
+            focusView = passwordView
+            cancel = true
+        } else if (passwordString != confirmPasswordString) {
+            confirmPasswordHolderView.error = getString(R.string.sign_up_error_incorrect_password)
+            focusView = confirmPasswordView
             cancel = true
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
             focusView?.requestFocus()
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
             Storage(this).setPassword(passwordString)
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
@@ -66,7 +64,5 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    private fun isPasswordValid(password: String): Boolean {
-        return password.length >= 6
-    }
+    private fun isPasswordValid(password: String) = !TextUtils.isEmpty(password) && password.length >= 6
 }

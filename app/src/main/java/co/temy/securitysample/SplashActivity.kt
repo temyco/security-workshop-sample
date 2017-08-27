@@ -57,7 +57,7 @@ class SplashActivity : AppCompatActivity(), SafetyNet.SafetyNetHolder {
 
     private fun showNextActivityDelayed() = handler.postDelayed({ showNextActivity() }, HOME_SCREEN_START_DELAY)
 
-    private fun showNextActivity() = if (Storage(this).isPasswordSet()) startHomeActivity() else startSignUpActivity()
+    private fun showNextActivity() = if (Storage(this).isPasswordSaved()) startHomeActivity() else startSignUpActivity()
 
     private fun startHomeActivity() = startActivity(HomeActivity::class.java)
 

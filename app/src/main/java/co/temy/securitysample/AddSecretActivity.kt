@@ -37,7 +37,7 @@ class AddSecretActivity : AppCompatActivity() {
             alias.error = getString(R.string.error_incorrect_alias)
             focusView = alias
             cancel = true
-        } else if (storage.isSecretAliasExists(aliasString)) {
+        } else if (storage.hasSecret(aliasString)) {
             alias.error = getString(R.string.error_duplicated_alias)
             focusView = alias
             cancel = true

@@ -1,21 +1,14 @@
 package co.temy.securitysample
 
-import android.app.KeyguardManager
-import android.app.admin.DevicePolicyManager
 import android.content.Intent
-import android.hardware.fingerprint.FingerprintManager
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.view.View
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : BaseSecureActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var btnAddPassword: FloatingActionButton
@@ -34,7 +27,6 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        checkLockScreen()
     }
 
     fun onAddPasswordClick(view: View) {
@@ -59,47 +51,5 @@ class HomeActivity : AppCompatActivity() {
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.tabContainer, tab)
         fragmentTransaction.commitNow()
-    }
-
-    private fun checkLockScreen() {
-        val kgManager = this.getSystemService(android.content.Context.KEYGUARD_SERVICE) as KeyguardManager
-        if (!kgManager.isKeyguardSecure) {
-            AlertDialog.Builder(this)
-                    .setTitle(R.string.lock_title)
-                    .setMessage(R.string.lock_body)
-                    .setPositiveButton(R.string.lock_settings, { d, i -> openLockScreenSettings() })
-                    .setNegativeButton(R.string.lock_exit, { d, i -> finish() })
-                    .setCancelable(BuildConfig.DEBUG)
-                    .show()
-        } else {
-            checkFingerprintSupport()
-        }
-    }
-
-    private fun checkFingerprintSupport() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
-
-        val fingerPrintManager = this.getSystemService(android.content.Context.FINGERPRINT_SERVICE) as FingerprintManager
-        val showAlert = fingerPrintManager.isHardwareDetected && !fingerPrintManager.hasEnrolledFingerprints()
-
-        if (showAlert) {
-            AlertDialog.Builder(this)
-                    .setTitle(R.string.finger_title)
-                    .setMessage(R.string.finger_body)
-                    .setPositiveButton(R.string.finger_settings, { d, i -> openSecuritySettings() })
-                    .setNegativeButton(R.string.finger_exit, { d, i -> finish() })
-                    .setCancelable(BuildConfig.DEBUG)
-                    .show()
-        }
-    }
-
-    private fun openLockScreenSettings() {
-        val intent = Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD)
-        startActivity(intent)
-    }
-
-    private fun openSecuritySettings() {
-        val intent = Intent(Settings.ACTION_SECURITY_SETTINGS)
-        startActivity(intent)
     }
 }

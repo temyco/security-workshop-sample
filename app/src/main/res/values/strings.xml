@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">Security Sample</string>
+    <string name="app_name">Secrets Keeper</string>
     <string name="passwords_empty_view_title">No passwords available</string>
     <string name="encryption_empty_view_title">
         Create at least one key \n to start encrypting</string>
@@ -35,6 +35,12 @@
 
     <string name="sign_up_error_invalid_password">Password is too short</string>
     <string name="sign_up_error_incorrect_password">Password is incorrect</string>
+    <string name="sign_up_allow_fingerprint">Allow Fingerprint for later use</string>
+    <string name="sign_up_bottom_hint">Create a password to keep you Secrets in secure.</string>
+    <string name="sign_up_welcome">Welcome to</string>
+    <string name="sign_up_snack_message">Register at least one fingerprint.</string>
+    <string name="sign_up_snack_action">SETTINGS</string>
+
 
     <!-- Strings related to add secret -->
     <string name="prompt_alias">Alias</string>

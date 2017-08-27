@@ -2,24 +2,39 @@ package co.temy.securitysample
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import android.support.design.widget.Snackbar
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import co.temy.securitysample.extentions.openSecuritySettings
 import kotlinx.android.synthetic.main.activity_sign_up.*
 
 /**
  * Sign up with password screen.
  */
-class SignUpActivity : AppCompatActivity() {
+class SignUpActivity : BaseSecureActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
+        initViews()
+    }
 
-        // Set up the sing up form.
-        passwordView.setOnEditorActionListener({ _, id, _ -> onEditorActionClick(id) })
+    private fun initViews() {
+        confirmPasswordView.setOnEditorActionListener({ _, id, _ -> onEditorActionClick(id) })
         doneView.setOnClickListener { attemptToSignUp() }
+
+        systemServices.isFingerprintHardwareAvailable().let { allowFingerprintView.visibility = View.VISIBLE }
+        allowFingerprintView.setOnCheckedChangeListener { _, checked -> onAllowFingerprint(checked) }
+    }
+
+    private fun onAllowFingerprint(checked: Boolean) {
+        if (checked && !systemServices.hasEnrolledFingerprints()) {
+            allowFingerprintView.isChecked = false
+            Snackbar.make(signUpRootView, R.string.sign_up_snack_message, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.sign_up_snack_action, { openSecuritySettings() })
+                    .show()
+        }
     }
 
     private fun onEditorActionClick(id: Int): Boolean = when (id) {
@@ -57,7 +72,11 @@ class SignUpActivity : AppCompatActivity() {
         if (cancel) {
             focusView?.requestFocus()
         } else {
-            Storage(this).setPassword(passwordString)
+            with(Storage(this)) {
+                savePassword(passwordString)
+                saveFingerprintAllowed(allowFingerprintView.isChecked)
+            }
+
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
             finish()

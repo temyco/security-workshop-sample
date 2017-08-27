@@ -20,6 +20,7 @@ class Storage constructor(context: Context) {
         private val STORAGE_SETTINGS: String = "settings"
         private val STORAGE_PASSWORD_HASH: String = "password_hash"
         private val STORAGE_SECRETS: String = "secrets"
+        private val STORAGE_FINGERPRINT: String = "fingerprint_allowed"
     }
 
     init {
@@ -27,16 +28,24 @@ class Storage constructor(context: Context) {
         secrets = context.getSharedPreferences(STORAGE_SECRETS, android.content.Context.MODE_PRIVATE)
     }
 
-    fun isPasswordSet(): Boolean {
+    fun isPasswordSaved(): Boolean {
         return settings.contains(STORAGE_PASSWORD_HASH)
     }
 
-    fun setPassword(password: String) {
+    fun savePassword(password: String) {
         val passwordHash = createPasswordHash(password)
         settings.edit().putString(STORAGE_PASSWORD_HASH, passwordHash).apply()
     }
 
-    fun isSecretAliasExists(alias: String): Boolean {
+    fun saveFingerprintAllowed(allowed: Boolean) {
+        settings.edit().putBoolean(STORAGE_FINGERPRINT, allowed).apply()
+    }
+
+    fun isFingerprintAllowed(): Boolean {
+        return settings.getBoolean(STORAGE_FINGERPRINT, false)
+    }
+
+    fun hasSecret(alias: String): Boolean {
         return secrets.contains(alias)
     }
 

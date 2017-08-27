@@ -32,6 +32,7 @@
             android:parentActivityName=".HomeActivity"/>
         <activity
             android:name=".SignUpActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:label="@string/title_activity_sign_up"/>
     </application>
 

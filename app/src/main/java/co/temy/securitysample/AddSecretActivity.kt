@@ -5,26 +5,26 @@ import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_add_secret.*
+import java.util.*
 
 class AddSecretActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_secret)
 
-        secret.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                saveSecret()
-                return@OnEditorActionListener true
-            }
-            false
-        })
-
+        secret.setOnEditorActionListener({ _, id, _ -> onEditorAction(id) })
         saveSecret.setOnClickListener { saveSecret() }
     }
 
-    fun saveSecret() {
+    private fun onEditorAction(id: Int): Boolean {
+        return if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+            saveSecret()
+            true
+        } else false
+    }
+
+    private fun saveSecret() {
         // Store alias and secret.
         val aliasString = alias.text.toString()
         val secretString = secret.text.toString()
@@ -49,7 +49,7 @@ class AddSecretActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             // Save secret in the encrypted storage
-            storage.putSecret(Storage.SecretData(aliasString, secretString))
+            storage.saveSecret(Storage.SecretData(aliasString, secretString, Date()))
             finish()
         }
     }

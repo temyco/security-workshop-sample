@@ -12,6 +12,7 @@ buildscript {
         support_version = '26.0.1'
         constraint_layout_version = '1.0.2'
         safetynethelper_version = '0.3.0'
+        gson_version = '2.8.0'
         junit_version = '4.12'
         test_runner_version = '1.0.0'
         test_espresso_version = '3.0.0'

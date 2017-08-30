@@ -3,6 +3,7 @@ package co.temy.securitysample
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
+import com.google.gson.Gson
 import java.security.MessageDigest
 import java.util.*
 
@@ -14,7 +15,9 @@ class Storage constructor(context: Context) {
     private val settings: SharedPreferences
     private val secrets: SharedPreferences
 
-    data class SecretData(val alias: String, val secret: String)
+    private val gson: Gson by lazy(LazyThreadSafetyMode.NONE) { Gson() }
+
+    data class SecretData(val alias: String, val secret: String, val date: Date)
 
     companion object {
         private val STORAGE_SETTINGS: String = "settings"
@@ -49,14 +52,14 @@ class Storage constructor(context: Context) {
         return secrets.contains(alias)
     }
 
-    fun putSecret(secret: SecretData) {
-        secrets.edit().putString(secret.alias, secret.secret).apply()
+    fun saveSecret(secret: SecretData) {
+        secrets.edit().putString(secret.alias, gson.toJson(secret)).apply()
     }
 
     fun getSecrets(): List<SecretData> {
         val secretsList = ArrayList<SecretData>()
         val secretsAliases = secrets.all
-        secretsAliases.forEach { secretsList.add(SecretData(it.key, it.value.toString())) }
+        secretsAliases.map { gson.fromJson(it.value as String, SecretData::class.java) }.forEach { secretsList.add(it) }
         return secretsList
     }
 

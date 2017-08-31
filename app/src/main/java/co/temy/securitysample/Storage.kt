@@ -59,7 +59,11 @@ class Storage constructor(context: Context) {
     fun getSecrets(): List<SecretData> {
         val secretsList = ArrayList<SecretData>()
         val secretsAliases = secrets.all
-        secretsAliases.map { gson.fromJson(it.value as String, SecretData::class.java) }.forEach { secretsList.add(it) }
+        secretsAliases
+                .map { gson.fromJson(it.value as String, SecretData::class.java) }
+                .forEach { secretsList.add(it) }
+
+        secretsList.sortBy { it.date }
         return secretsList
     }
 

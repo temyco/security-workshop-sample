@@ -1,5 +1,6 @@
 package co.temy.securitysample
 
+import android.app.Activity
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
@@ -30,7 +31,7 @@ class AddSecretActivity : AppCompatActivity() {
         val secretString = secret.text.toString()
         var cancel = false
         var focusView: View? = null
-        val storage: Storage = Storage(this)
+        val storage = Storage(this)
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(aliasString)) {
@@ -50,6 +51,7 @@ class AddSecretActivity : AppCompatActivity() {
         } else {
             // Save secret in the encrypted storage
             storage.saveSecret(Storage.SecretData(aliasString, secretString, Date()))
+            setResult(Activity.RESULT_OK)
             finish()
         }
     }

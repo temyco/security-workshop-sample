@@ -1,28 +1,53 @@
 package co.temy.securitysample
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
+import android.view.View
 import co.temy.securitysample.encryption.CipherWrapper
 import co.temy.securitysample.encryption.KeyStoreWrapper
+import co.temy.securitysample.system.SecretsAdapter
 import kotlinx.android.synthetic.main.activity_home.*
+
 
 class HomeActivity : BaseSecureActivity() {
 
     companion object {
         val TEST_PASSWORD = "TEST_PASSWORD"
+        val ADD_SECRET_REQUEST_CODE = 300
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        val secrets = Storage(baseContext).getSecrets()
+
         addPasswordView.setOnClickListener { onAddPasswordClick() }
+        secretsView.layoutManager = LinearLayoutManager(baseContext)
+        secretsView.adapter = SecretsAdapter(secrets) { onSecretClick(it) }
+
+        emptyView.visibility = if (secrets.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == ADD_SECRET_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            (secretsView.adapter as SecretsAdapter).update(Storage(baseContext).getSecrets())
+            emptyView.visibility = View.GONE
+        }
+    }
+
+    private fun onSecretClick(secret: Storage.SecretData) {
+
     }
 
     private fun onAddPasswordClick() {
         val intent = Intent(this, AddSecretActivity::class.java)
-        startActivity(intent)
+        startActivityForResult(intent, ADD_SECRET_REQUEST_CODE)
     }
 
     private fun printAliases() {

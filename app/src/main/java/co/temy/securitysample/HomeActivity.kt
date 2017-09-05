@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import co.temy.securitysample.encryption.CipherWrapper
 import co.temy.securitysample.encryption.KeyStoreWrapper
+import co.temy.securitysample.extentions.startSecretActivity
 import co.temy.securitysample.system.SecretsAdapter
 import kotlinx.android.synthetic.main.activity_home.*
 
@@ -42,12 +43,11 @@ class HomeActivity : BaseSecureActivity() {
     }
 
     private fun onSecretClick(secret: Storage.SecretData) {
-
+        startSecretActivity(ADD_SECRET_REQUEST_CODE, SecretActivity.MODE_VIEW, secret)
     }
 
     private fun onAddPasswordClick() {
-        val intent = Intent(this, AddSecretActivity::class.java)
-        startActivityForResult(intent, ADD_SECRET_REQUEST_CODE)
+        startSecretActivity(ADD_SECRET_REQUEST_CODE)
     }
 
     private fun printAliases() {

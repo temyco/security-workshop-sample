@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
 import com.google.gson.Gson
+import java.io.Serializable
 import java.security.MessageDigest
 import java.util.*
 
@@ -17,7 +18,7 @@ class Storage constructor(context: Context) {
 
     private val gson: Gson by lazy(LazyThreadSafetyMode.NONE) { Gson() }
 
-    data class SecretData(val alias: String, val secret: String, val date: Date)
+    data class SecretData(val alias: String, val secret: String, val date: Date) : Serializable
 
     companion object {
         private val STORAGE_SETTINGS: String = "settings"

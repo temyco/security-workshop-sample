@@ -1,9 +1,7 @@
 <resources>
 
     <string name="app_name">Secrets Keeper</string>
-    <string name="passwords_empty_view_title">No passwords available</string>
-    <string name="encryption_empty_view_title">
-        Create at least one key \n to start encrypting</string>
+    <string name="home_empty_view_title">No secrets added</string>
     <string name="add_secret_title">Add Secret</string>
 
     <!--Fingerprint Sample Dialog strings-->

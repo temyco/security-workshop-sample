@@ -6,6 +6,7 @@ import android.support.design.widget.Snackbar
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import co.temy.securitysample.extentions.hideKeyboard
 import co.temy.securitysample.extentions.openSecuritySettings
 import kotlinx.android.synthetic.main.activity_sign_up.*
 
@@ -77,6 +78,7 @@ class SignUpActivity : BaseSecureActivity() {
                 saveFingerprintAllowed(allowFingerprintView.isChecked)
             }
 
+            focusView?.hideKeyboard()
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
             finish()

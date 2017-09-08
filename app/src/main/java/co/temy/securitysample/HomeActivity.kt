@@ -9,7 +9,6 @@ import android.view.View
 import co.temy.securitysample.encryption.CipherWrapper
 import co.temy.securitysample.encryption.KeyStoreWrapper
 import co.temy.securitysample.extentions.startSecretActivity
-import co.temy.securitysample.system.SecretsAdapter
 import kotlinx.android.synthetic.main.activity_home.*
 
 
@@ -38,7 +37,7 @@ class HomeActivity : BaseSecureActivity() {
 
         if (requestCode == ADD_SECRET_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             (secretsView.adapter as SecretsAdapter).update(Storage(baseContext).getSecrets())
-            emptyView.visibility = View.GONE
+            emptyView.visibility = if (secretsView.adapter.itemCount > 0) View.GONE else View.VISIBLE
         }
     }
 

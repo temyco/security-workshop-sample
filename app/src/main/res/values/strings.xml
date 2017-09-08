@@ -43,10 +43,15 @@
     <!-- Strings related to add secret -->
     <string name="prompt_alias">Alias</string>
     <string name="prompt_secret">Secret</string>
-    <string name="action_save">Save encrypted</string>
     <string name="action_save_in_short">Save</string>
     <string name="error_incorrect_alias">Alias can not be empty</string>
     <string name="error_duplicated_alias">Alias already exists</string>
+    <string name="secret_error_empty_secret">Secret can not be empty</string>
+    <string name="secret_menu_done">Save</string>
+    <string name="secret_menu_edit">Edit</string>
+    <string name="secret_menu_delete">Delete</string>
+    <string name="secret_created_date">Created %s</string>
+    <string name="secret_updated_date">Updated %s</string>
 
     <!--Progress-->
     <string name="check_environment_lab">Environment\'s being checked</string>

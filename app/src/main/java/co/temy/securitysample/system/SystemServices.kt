@@ -37,8 +37,8 @@ class SystemServices(private val context: Context) {
         return AlertDialog.Builder(context)
                 .setTitle(R.string.lock_title)
                 .setMessage(R.string.lock_body)
-                .setPositiveButton(R.string.lock_settings, { d, i -> context.openLockScreenSettings() })
-                .setNegativeButton(R.string.lock_exit, { d, i -> System.exit(0) })
+                .setPositiveButton(R.string.lock_settings, { _, _ -> context.openLockScreenSettings() })
+                .setNegativeButton(R.string.lock_exit, { _, _ -> System.exit(0) })
                 .setCancelable(BuildConfig.DEBUG)
                 .show()
     }

@@ -18,7 +18,11 @@ class Storage constructor(context: Context) {
 
     private val gson: Gson by lazy(LazyThreadSafetyMode.NONE) { Gson() }
 
-    data class SecretData(val alias: String, val secret: String, val date: Date) : Serializable
+    data class SecretData(
+            val alias: String,
+            val secret: String,
+            val createDate: Date,
+            val updateDate: Date) : Serializable
 
     companion object {
         private val STORAGE_SETTINGS: String = "settings"
@@ -57,6 +61,10 @@ class Storage constructor(context: Context) {
         secrets.edit().putString(secret.alias, gson.toJson(secret)).apply()
     }
 
+    fun removeSecret(alias: String) {
+        secrets.edit().remove(alias).apply()
+    }
+
     fun getSecrets(): List<SecretData> {
         val secretsList = ArrayList<SecretData>()
         val secretsAliases = secrets.all
@@ -64,7 +72,7 @@ class Storage constructor(context: Context) {
                 .map { gson.fromJson(it.value as String, SecretData::class.java) }
                 .forEach { secretsList.add(it) }
 
-        secretsList.sortBy { it.date }
+        secretsList.sortByDescending { it.createDate }
         return secretsList
     }
 

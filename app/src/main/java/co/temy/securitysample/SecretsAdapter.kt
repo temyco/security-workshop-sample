@@ -1,10 +1,8 @@
-package co.temy.securitysample.system
+package co.temy.securitysample
 
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
-import co.temy.securitysample.R
-import co.temy.securitysample.Storage
 import co.temy.securitysample.extentions.inflate
 import kotlinx.android.synthetic.main.item_secret.view.*
 import java.text.DateFormat
@@ -30,7 +28,7 @@ class SecretsAdapter(
     class Holder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: Storage.SecretData, listener: (Storage.SecretData) -> Unit, dateFormatter: DateFormat) = with(itemView) {
             titleView.text = item.alias
-            dateView.text = dateFormatter.format(item.date)
+            dateView.text = dateFormatter.format(item.createDate)
             setOnClickListener { listener(item) }
         }
     }

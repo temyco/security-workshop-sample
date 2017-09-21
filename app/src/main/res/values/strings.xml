@@ -5,27 +5,29 @@
     <string name="add_secret_title">Add Secret</string>
 
     <!--Fingerprint Sample Dialog strings-->
-    <string name="cancel">Cancel</string>
-    <string name="use_password">Use password</string>
-    <string name="sign_in">Sign in</string>
-    <string name="ok">OK</string>
-    <string name="password">Password</string>
-    <string name="fingerprint_description">Confirm fingerprint to continue</string>
-    <string name="fingerprint_hint">Touch sensor</string>
-    <string name="password_description">Enter your store password to continue</string>
-    <string name="fingerprint_not_recognized">Fingerprint not recognized. Try again</string>
-    <string name="fingerprint_success">Fingerprint recognized</string>
-    <string name="new_fingerprint_enrolled_description">
+    <string name="authentication_ok">OK</string>
+    <string name="authentication_cancel">Cancel</string>
+    <string name="authentication_title">Authenticate</string>
+    <string name="authentication_use_password">Use password</string>
+    <string name="authentication_password">Password</string>
+    <string name="authentication_password_description">Enter your password to continue</string>
+    <string name="authentication_error_incorrect_password">Password is incorrect</string>
+    <string name="authentication_fingerprint_description">Confirm fingerprint to continue</string>
+    <string name="authentication_fingerprint_hint">Touch sensor</string>
+    <string name="authentication_fingerprint_not_recognized">Fingerprint not recognized. Try again</string>
+    <string name="authentication_fingerprint_success">Fingerprint recognized</string>
+    <string name="authentication_fingerprint_new_enrollment_description">
         A new fingerprint was added to this device, so your password is required.
     </string>
-    <string name="use_fingerprint_in_future">Use fingerprint in the future</string>
-    <string name="use_fingerprint_to_authenticate_key">use_fingerprint_to_authenticate_key</string>
-    <string name="description_fingerprint_icon">Fingerprint icon</string>
-    <string name="home_passwords_tab_title">Passwords</string>
-    <string name="home_encryption_tab_title">Encryption</string>
-    <string name="title_activity_sign_up">Sign Up</string>
+    <string name="authentication_fingerprint_use_in_future">Use fingerprint in the future</string>
+    <string name="authentication_fingerprint_icon_description">Fingerprint icon</string>
+    <string name="authentication_fingerprint_use_to_authenticate_key">use_fingerprint_to_authenticate_key</string>
+
+    <!-- Strings related to home screen -->
+    <string name="home_menu_reset">Reset</string>
 
     <!-- Strings related to sign up -->
+    <string name="sign_up_activity_title">Sign Up</string>
     <string name="sign_up_prompt_password">Enter password</string>
     <string name="sign_up_prompt_confirm_password">Confirm password</string>
     <string name="sign_up_action_done">Done</string>
@@ -38,7 +40,6 @@
     <string name="sign_up_welcome">Welcome to</string>
     <string name="sign_up_snack_message">Register at least one fingerprint.</string>
     <string name="sign_up_snack_action">SETTINGS</string>
-
 
     <!-- Strings related to add secret -->
     <string name="prompt_alias">Alias</string>

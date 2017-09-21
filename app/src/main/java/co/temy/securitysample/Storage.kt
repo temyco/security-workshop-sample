@@ -2,10 +2,8 @@ package co.temy.securitysample
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Base64
 import com.google.gson.Gson
 import java.io.Serializable
-import java.security.MessageDigest
 import java.util.*
 
 /**
@@ -26,7 +24,8 @@ class Storage constructor(context: Context) {
 
     companion object {
         private val STORAGE_SETTINGS: String = "settings"
-        private val STORAGE_PASSWORD_HASH: String = "password_hash"
+        private val STORAGE_ENCRYPTION_KEY: String = "encryption_key"
+        private val STORAGE_PASSWORD: String = "password"
         private val STORAGE_SECRETS: String = "secrets"
         private val STORAGE_FINGERPRINT: String = "fingerprint_allowed"
     }
@@ -36,14 +35,21 @@ class Storage constructor(context: Context) {
         secrets = context.getSharedPreferences(STORAGE_SECRETS, android.content.Context.MODE_PRIVATE)
     }
 
+    fun saveEncryptionKey(key: String) {
+        settings.edit().putString(STORAGE_ENCRYPTION_KEY, key).apply()
+    }
+
+    fun getEncryptionKey(): String = settings.getString(STORAGE_ENCRYPTION_KEY, "")
+
     fun isPasswordSaved(): Boolean {
-        return settings.contains(STORAGE_PASSWORD_HASH)
+        return settings.contains(STORAGE_PASSWORD)
     }
 
     fun savePassword(password: String) {
-        val passwordHash = createPasswordHash(password)
-        settings.edit().putString(STORAGE_PASSWORD_HASH, passwordHash).apply()
+        settings.edit().putString(STORAGE_PASSWORD, password).apply()
     }
+
+    fun getPassword(): String = settings.getString(STORAGE_PASSWORD, "")
 
     fun saveFingerprintAllowed(allowed: Boolean) {
         settings.edit().putBoolean(STORAGE_FINGERPRINT, allowed).apply()
@@ -76,10 +82,8 @@ class Storage constructor(context: Context) {
         return secretsList
     }
 
-    private fun createPasswordHash(password: String): String {
-        val md = MessageDigest.getInstance("SHA-512")
-        val passwordBytes = password.toByteArray(Charsets.UTF_16)
-        val passwordHash = md.digest(passwordBytes)
-        return Base64.encodeToString(passwordHash, Base64.DEFAULT)
+    fun clear(){
+        settings.edit().clear().apply()
+        secrets.edit().clear().apply()
     }
 }

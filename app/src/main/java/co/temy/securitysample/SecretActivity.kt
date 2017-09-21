@@ -32,11 +32,13 @@ class SecretActivity : AppCompatActivity() {
     private var aliasEditBg: Drawable? = null
     private var secretEditBg: Drawable? = null
     private lateinit var menu: Menu
+    private lateinit var storage: Storage
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_secret)
 
+        storage = Storage(applicationContext)
         mode = intent.getIntExtra("mode", MODE_CREATE)
         secret = intent.getSerializableExtra("secret").let { it as Storage.SecretData? }
 
@@ -86,7 +88,7 @@ class SecretActivity : AppCompatActivity() {
                 window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
 
                 aliasEditView.setText(secret?.alias)
-                secretEditView.setText(secret?.secret)
+                secretEditView.setText(secret?.let { decryptSecret(it.secret) } ?: "")
 
                 if (secret?.createDate == secret?.updateDate) {
                     dateView.text = getString(R.string.secret_created_date, dateFormatter.format(secret?.createDate))
@@ -105,6 +107,7 @@ class SecretActivity : AppCompatActivity() {
 
                 secretEditBg = secretEditView.background
                 secretInputView.isHintEnabled = false
+                secretInputView.isCounterEnabled = false
                 secretInputView.isEnabled = false
                 secretEditView.isEnabled = false
                 secretEditView.background = null
@@ -124,6 +127,7 @@ class SecretActivity : AppCompatActivity() {
                 aliasEditView.isEnabled = true
                 aliasEditView.background = aliasEditBg
 
+                secretInputView.isCounterEnabled = true
                 secretInputView.isEnabled = true
                 secretEditView.isEnabled = true
                 secretEditView.background = secretEditBg
@@ -159,18 +163,18 @@ class SecretActivity : AppCompatActivity() {
 
     private fun onSaveClick() {
         when (mode) {
-            MODE_CREATE -> validateInput { storage, alias, secret -> saveSecret(storage, alias, secret) }
-            MODE_EDIT -> validateInput { storage, alias, secret -> editSecret(storage, alias, secret) }
+            MODE_CREATE -> validateInput { alias, secret -> saveSecret(alias, secret) }
+            MODE_EDIT -> validateInput { alias, secret -> editSecret(alias, secret) }
         }
     }
 
     private fun onDeleteClick() {
-        secret?.alias?.let { Storage(baseContext).removeSecret(it) }
+        secret?.alias?.let { storage.removeSecret(it) }
         setResult(Activity.RESULT_OK)
         finish()
     }
 
-    private fun validateInput(onSuccess: (Storage, String, String) -> Unit) {
+    private fun validateInput(onSuccess: (String, String) -> Unit) {
         aliasInputView.error = null
         secretInputView.error = null
 
@@ -178,7 +182,6 @@ class SecretActivity : AppCompatActivity() {
         val secretString = secretEditView.text.toString()
         var cancel = false
         var focusView: View? = null
-        val storage = Storage(this)
 
         when {
             TextUtils.isEmpty(aliasString) -> {
@@ -202,14 +205,14 @@ class SecretActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             focusView?.hideKeyboard()
-            onSuccess(storage, aliasString, secretString)
+            onSuccess(aliasString, secretString)
         }
     }
 
-    private fun editSecret(storage: Storage, alias: String, secret: String) {
+    private fun editSecret(newAlias: String, secret: String) {
         this.secret?.let {
-            val newSecret = createSecretData(alias, secret, it.createDate)
-            storage.removeSecret(newSecret.alias)
+            storage.removeSecret(it.alias)
+            val newSecret = createSecretData(newAlias, secret, it.createDate)
             storage.saveSecret(newSecret)
             this.secret = newSecret
         }
@@ -217,13 +220,27 @@ class SecretActivity : AppCompatActivity() {
         changeMode(MODE_VIEW)
     }
 
-    private fun saveSecret(storage: Storage, alias: String, secret: String) {
+    private fun saveSecret(alias: String, secret: String) {
         storage.saveSecret(createSecretData(alias, secret, Date()))
         setResult(Activity.RESULT_OK)
         finish()
     }
 
     private fun createSecretData(alias: String, secret: String, createDate: Date): Storage.SecretData {
-        return Storage.SecretData(alias.capitalize(), secret, createDate, Date())
+        return Storage.SecretData(alias.capitalize(), encryptSecret(secret), createDate, updateDate = Date())
+    }
+
+    /**
+     * Encrypt secret before saving it.
+     */
+    private fun encryptSecret(secret: String): String {
+        return EncryptionService(applicationContext).encrypt(secret)
+    }
+
+    /**
+     * Decrypt secret before showing it.
+     */
+    private fun decryptSecret(secret: String): String {
+        return EncryptionService(applicationContext).decrypt(secret)
     }
 }

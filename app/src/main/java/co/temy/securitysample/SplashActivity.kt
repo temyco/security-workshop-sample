@@ -1,12 +1,13 @@
 package co.temy.securitysample
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import co.temy.securitysample.BuildConfig.IS_SAFETY_NET_ENABLED
+import co.temy.securitysample.extentions.startHomeActivity
+import co.temy.securitysample.extentions.startSignUpActivity
 import co.temy.securitysample.safetynet.SafetyNet
 import kotlinx.android.synthetic.main.activity_splash.*
 
@@ -58,14 +59,4 @@ class SplashActivity : AppCompatActivity(), SafetyNet.SafetyNetHolder {
     private fun showNextActivityDelayed() = handler.postDelayed({ showNextActivity() }, HOME_SCREEN_START_DELAY)
 
     private fun showNextActivity() = if (Storage(this).isPasswordSaved()) startHomeActivity() else startSignUpActivity()
-
-    private fun startHomeActivity() = startActivity(HomeActivity::class.java)
-
-    private fun startSignUpActivity() = startActivity(SignUpActivity::class.java)
-
-    private fun startActivity(cls: Class<*>) {
-        val intent = Intent(this, cls)
-        startActivity(intent)
-        finish()
-    }
 }

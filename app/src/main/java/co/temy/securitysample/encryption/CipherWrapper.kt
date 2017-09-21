@@ -7,6 +7,7 @@ import java.security.NoSuchProviderException
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * This class wraps default [Cipher] class apis with some additional possibilities.
@@ -96,8 +97,19 @@ class CipherWrapper(val transformation: String) {
 
         val encryptedData = Base64.decode(encodedString, Base64.DEFAULT)
         val decodedData = cipher.doFinal(encryptedData)
-
         return String(decodedData)
+    }
+
+    fun wrapKey(keyToBeWrapped: Key, keyToWrapWith: Key): String {
+        cipher.init(Cipher.WRAP_MODE, keyToWrapWith)
+        val decodedData = cipher.wrap(keyToBeWrapped)
+        return Base64.encodeToString(decodedData, Base64.DEFAULT)
+    }
+
+    fun unWrapKey(wrappedKeyData: String, alghorithm: String, wrappedKeyType : Int, keyToUnWrapWith: Key): Key {
+        val encryptedKeyData = Base64.decode(wrappedKeyData, Base64.DEFAULT)
+        cipher.init(Cipher.UNWRAP_MODE, keyToUnWrapWith)
+        return cipher.unwrap(encryptedKeyData, alghorithm, wrappedKeyType)
     }
 }
 

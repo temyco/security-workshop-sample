@@ -4,18 +4,18 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import co.temy.securitysample.encryption.CipherWrapper
-import co.temy.securitysample.encryption.KeyStoreWrapper
+import co.temy.securitysample.authentication.AuthenticationDialog
 import co.temy.securitysample.extentions.startSecretActivity
+import co.temy.securitysample.extentions.startSignUpActivity
 import kotlinx.android.synthetic.main.activity_home.*
 
 
 class HomeActivity : BaseSecureActivity() {
 
     companion object {
-        val TEST_PASSWORD = "TEST_PASSWORD"
         val ADD_SECRET_REQUEST_CODE = 300
     }
 
@@ -34,49 +34,47 @@ class HomeActivity : BaseSecureActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == ADD_SECRET_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             (secretsView.adapter as SecretsAdapter).update(Storage(baseContext).getSecrets())
             emptyView.visibility = if (secretsView.adapter.itemCount > 0) View.GONE else View.VISIBLE
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_home, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when {
+        item.itemId == R.id.menu_reset -> {
+            onResetClick()
+            true
+        }
+        else -> false
+    }
+
+    private fun onResetClick() {
+        Storage(baseContext).clear()
+        startSignUpActivity()
+    }
+
     private fun onSecretClick(secret: Storage.SecretData) {
-        startSecretActivity(ADD_SECRET_REQUEST_CODE, SecretActivity.MODE_VIEW, secret)
+        val dialog = AuthenticationDialog()
+        dialog.authenticationSuccessListener = { startSecretActivity(ADD_SECRET_REQUEST_CODE, SecretActivity.MODE_VIEW, secret) }
+        dialog.passwordVerificationListener = { validatePassword(it) }
+        dialog.show(supportFragmentManager, "Authentication")
+    }
+
+    /**
+     * Validate password inputted from Authentication Dialog.
+     */
+    private fun validatePassword(inputtedPassword: String): Boolean {
+        val storage = Storage(this)
+        return EncryptionService(applicationContext).decrypt(storage.getPassword()) == inputtedPassword
+
     }
 
     private fun onAddPasswordClick() {
         startSecretActivity(ADD_SECRET_REQUEST_CODE)
-    }
-
-    private fun printAliases() {
-        val keyStore = KeyStoreWrapper()
-        keyStore.getAllKeyAliases()
-                .sortedBy { it.creationDate }
-                .forEach { Log.i("EncryptionFragment", "${it} \n") }
-    }
-
-    private var keyNumber = 0
-
-    private fun createKey() {
-        val keyStore = KeyStoreWrapper()
-        keyStore.createSymmetricKey("Test-${++keyNumber}", false, false)
-    }
-
-    private fun testEncryption() {
-        val keyStore = KeyStoreWrapper()
-        val symmetricKey = keyStore.createSymmetricKey(alias = TEST_PASSWORD, userAuthenticationRequired = false, invalidatedByBiometricEnrollment = false)
-
-        val cipher = CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC)
-
-        if (symmetricKey != null) {
-
-            val encryptedData = cipher.encrypt(TEST_PASSWORD, symmetricKey)
-            val decryptedData = cipher.decrypt(encryptedData, symmetricKey)
-
-            Log.i("EncryptionFragment", "Input Value : ${TEST_PASSWORD}")
-            Log.i("EncryptionFragment", "Encrypted Value : $encryptedData")
-            Log.i("EncryptionFragment", "Decrypted Value : ${decryptedData}")
-        }
     }
 }

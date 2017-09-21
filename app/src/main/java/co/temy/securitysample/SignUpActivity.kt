@@ -1,6 +1,5 @@
 package co.temy.securitysample
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.text.TextUtils
@@ -8,6 +7,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import co.temy.securitysample.extentions.hideKeyboard
 import co.temy.securitysample.extentions.openSecuritySettings
+import co.temy.securitysample.extentions.startHomeActivity
 import kotlinx.android.synthetic.main.activity_sign_up.*
 
 /**
@@ -74,15 +74,21 @@ class SignUpActivity : BaseSecureActivity() {
             focusView?.requestFocus()
         } else {
             with(Storage(this)) {
-                savePassword(passwordString)
+                savePassword(encryptPassword(passwordString))
                 saveFingerprintAllowed(allowFingerprintView.isChecked)
             }
-
             focusView?.hideKeyboard()
-            val intent = Intent(this, HomeActivity::class.java)
-            startActivity(intent)
-            finish()
+            startHomeActivity()
         }
+    }
+
+    /**
+     * Create master key and encrypt user password.
+     */
+    private fun encryptPassword(passwordString: String): String {
+        val encryptionService = EncryptionService(applicationContext)
+        encryptionService.createMasterKey()
+        return encryptionService.encrypt(passwordString)
     }
 
     private fun isPasswordValid(password: String) = !TextUtils.isEmpty(password) && password.length >= 6

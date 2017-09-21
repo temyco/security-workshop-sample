@@ -15,7 +15,7 @@
   ~ limitations under the License
   -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/fingerprint_container"
+    android:id="@+id/fingerprintContainerView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="8dp"
@@ -29,31 +29,31 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:text="@string/fingerprint_description"
+        android:text="@string/authentication_fingerprint_description"
         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
         android:textColor="?android:attr/textColorSecondary"/>
 
 
     <ImageView
-        android:id="@+id/fingerprint_icon"
+        android:id="@+id/fingerprintIconView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/fingerprint_description"
         android:layout_marginTop="20dp"
         android:src="@drawable/ic_fp_40px"
-        android:contentDescription="@string/description_fingerprint_icon"/>
+        android:contentDescription="@string/authentication_fingerprint_icon_description"/>
 
     <TextView
-        android:id="@+id/fingerprint_status"
+        android:id="@+id/fingerprintStatusView"
         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/fingerprint_icon"
-        android:layout_alignTop="@+id/fingerprint_icon"
+        android:layout_alignBottom="@+id/fingerprintIconView"
+        android:layout_alignTop="@+id/fingerprintIconView"
         android:layout_marginStart="16dp"
-        android:layout_toEndOf="@+id/fingerprint_icon"
+        android:layout_toEndOf="@+id/fingerprintIconView"
         android:gravity="center_vertical"
-        android:text="@string/fingerprint_hint"
+        android:text="@string/authentication_fingerprint_hint"
         android:textColor="@color/hint_color" />
 </RelativeLayout>

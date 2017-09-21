@@ -2,11 +2,11 @@ package co.temy.securitysample
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-
+import android.util.Log
+import co.temy.securitysample.encryption.CipherWrapper
+import co.temy.securitysample.encryption.KeyStoreWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
-
-import org.junit.Assert.*
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -15,10 +15,26 @@ import org.junit.Assert.*
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
+
+    companion object {
+        val TEST_PASSWORD = "TEST_PASSWORD"
+    }
+
     @Test
-    fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("co.temy.securitysample", appContext.packageName)
+    fun testEncryption() {
+        val keyStore = KeyStoreWrapper(InstrumentationRegistry.getTargetContext())
+        val symmetricKey = keyStore.createAndroidKeyStoreSymmetricKey(TEST_PASSWORD, false, false)
+
+        val cipher = CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC)
+
+        if (symmetricKey != null) {
+
+            val encryptedData = cipher.encrypt(TEST_PASSWORD, symmetricKey)
+            val decryptedData = cipher.decrypt(encryptedData, symmetricKey)
+
+            Log.i("EncryptionFragment", "Input Value : $TEST_PASSWORD")
+            Log.i("EncryptionFragment", "Encrypted Value : $encryptedData")
+            Log.i("EncryptionFragment", "Decrypted Value : $decryptedData")
+        }
     }
 }

@@ -1,13 +1,13 @@
-package co.temy.securitysample.system
+package co.temy.securitysample
 
 import android.annotation.TargetApi
 import android.app.KeyguardManager
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
+import android.os.CancellationSignal
+import android.os.Handler
 import android.support.v7.app.AlertDialog
-import co.temy.securitysample.BuildConfig
-import co.temy.securitysample.R
 import co.temy.securitysample.extentions.openLockScreenSettings
 
 @TargetApi(Build.VERSION_CODES.M)
@@ -32,6 +32,10 @@ class SystemServices(private val context: Context) {
     fun isFingerprintHardwareAvailable() = fingerprintManager?.isHardwareDetected ?: false
 
     fun hasEnrolledFingerprints() = fingerprintManager?.hasEnrolledFingerprints() ?: false
+
+    fun authenticateFingerprint(cryptoObject: FingerprintManager.CryptoObject, cancellationSignal: CancellationSignal, flags: Int, callback: FingerprintManager.AuthenticationCallback, handler: Handler) {
+        fingerprintManager?.authenticate(cryptoObject, cancellationSignal, flags, callback, handler)
+    }
 
     fun showDeviceSecurityAlert(): AlertDialog {
         return AlertDialog.Builder(context)

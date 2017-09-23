@@ -6,7 +6,7 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import co.temy.securitysample.SystemServices
+import co.temy.securitysample.authentication.SystemServices
 import java.math.BigInteger
 import java.security.KeyPair
 import java.security.KeyPairGenerator

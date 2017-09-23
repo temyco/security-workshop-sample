@@ -2,6 +2,7 @@ package co.temy.securitysample
 
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import co.temy.securitysample.authentication.SystemServices
 
 open class BaseSecureActivity : AppCompatActivity() {
 

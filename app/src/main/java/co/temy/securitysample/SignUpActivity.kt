@@ -5,6 +5,8 @@ import android.support.design.widget.Snackbar
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import co.temy.securitysample.authentication.EncryptionServices
+import co.temy.securitysample.authentication.SystemServices
 import co.temy.securitysample.extentions.hideKeyboard
 import co.temy.securitysample.extentions.openSecuritySettings
 import co.temy.securitysample.extentions.startHomeActivity
@@ -25,7 +27,9 @@ class SignUpActivity : BaseSecureActivity() {
         confirmPasswordView.setOnEditorActionListener({ _, id, _ -> onEditorActionClick(id) })
         doneView.setOnClickListener { attemptToSignUp() }
 
-        systemServices.isFingerprintHardwareAvailable().let { allowFingerprintView.visibility = View.VISIBLE }
+        if (systemServices.isFingerprintHardwareAvailable()) {
+            allowFingerprintView.visibility = View.VISIBLE
+        }
         allowFingerprintView.setOnCheckedChangeListener { _, checked -> onAllowFingerprint(checked) }
     }
 
@@ -86,8 +90,14 @@ class SignUpActivity : BaseSecureActivity() {
      * Create master key and encrypt user password.
      */
     private fun encryptPassword(passwordString: String): String {
-        val encryptionService = EncryptionService(applicationContext)
+        val encryptionService = EncryptionServices(applicationContext)
         encryptionService.createMasterKey()
+
+        if (SystemServices.hasMarshmallow() && systemServices.hasEnrolledFingerprints()) {
+            encryptionService.createFingerprintKey()
+            encryptionService.createConfirmCredentialsKey()
+        }
+
         return encryptionService.encrypt(passwordString)
     }
 

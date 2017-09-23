@@ -1,12 +1,15 @@
-package co.temy.securitysample
+package co.temy.securitysample.authentication
 
 import android.content.Context
+import android.hardware.fingerprint.FingerprintManager
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import co.temy.securitysample.Storage
 import co.temy.securitysample.encryption.CipherWrapper
 import co.temy.securitysample.encryption.KeyStoreWrapper
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 
-class EncryptionService(context: Context) {
+class EncryptionServices(context: Context) {
 
     companion object {
         val MASTER_KEY = "MASTER_KEY"
@@ -24,6 +27,38 @@ class EncryptionService(context: Context) {
         } else {
             createDefaultSymmetricKey()
         }
+    }
+
+    fun createFingerprintKey() {
+        if (SystemServices.hasMarshmallow()) {
+            keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY, true, true)
+        }
+    }
+
+    fun createConfirmCredentialsKey() {
+        if (SystemServices.hasMarshmallow()) {
+        }
+    }
+
+    /**
+     * @return initialized crypto object or null if fingerprint key was invalidated.
+     */
+    fun prepareFingerprintCryptoObject(): FingerprintManager.CryptoObject? {
+        return if (SystemServices.hasMarshmallow()) {
+            try {
+                val symmetricKey = keyStoreWrapper.getSymmetricKey(FINGERPRINT_KEY)
+                val cipher = CipherWrapper.createCipher(CipherWrapper.TRANSFORMATION_SYMMETRIC)
+                cipher.init(Cipher.ENCRYPT_MODE, symmetricKey)
+                FingerprintManager.CryptoObject(cipher)
+            } catch (e: Throwable) {
+                // VerifyError is will be thrown on API lower then 23 if we will use unedited
+                // class reference directly in catch block
+                if (e is KeyPermanentlyInvalidatedException) {
+                    return null
+                }
+                throw e
+            }
+        } else null
     }
 
     fun encrypt(data: String): String {
@@ -76,4 +111,6 @@ class EncryptionService(context: Context) {
         val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey.private) as SecretKey
         return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, symmetricKey)
     }
+
+    class CryptoHolder(val cryptoObject: FingerprintManager.CryptoObject)
 }

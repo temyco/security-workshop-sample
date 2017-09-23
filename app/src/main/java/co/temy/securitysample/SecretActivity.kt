@@ -10,6 +10,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
+import co.temy.securitysample.authentication.EncryptionServices
 import co.temy.securitysample.extentions.hideKeyboard
 import co.temy.securitysample.extentions.showKeyboard
 import kotlinx.android.synthetic.main.activity_add_secret.*
@@ -234,13 +235,13 @@ class SecretActivity : AppCompatActivity() {
      * Encrypt secret before saving it.
      */
     private fun encryptSecret(secret: String): String {
-        return EncryptionService(applicationContext).encrypt(secret)
+        return EncryptionServices(applicationContext).encrypt(secret)
     }
 
     /**
      * Decrypt secret before showing it.
      */
     private fun decryptSecret(secret: String): String {
-        return EncryptionService(applicationContext).decrypt(secret)
+        return EncryptionServices(applicationContext).decrypt(secret)
     }
 }

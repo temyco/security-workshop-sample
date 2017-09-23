@@ -1,25 +1,22 @@
 package co.temy.securitysample.authentication
 
-import android.app.Activity
 import android.content.Context
-import android.content.SharedPreferences
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.v4.app.DialogFragment
 import android.support.v7.app.AppCompatDialogFragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import co.temy.securitysample.R
-import co.temy.securitysample.SystemServices
 import co.temy.securitysample.extentions.showKeyboard
 import kotlinx.android.synthetic.main.dialog_fingerprint_backup.*
 import kotlinx.android.synthetic.main.dialog_fingerprint_container.*
 import kotlinx.android.synthetic.main.dialog_fingerprint_content.*
 
-class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Callback {
+class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprint.Callback {
 
     var passwordVerificationListener: ((password: String) -> Boolean)? = null
     var authenticationSuccessListener: (() -> Unit)? = null
@@ -34,10 +31,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
      */
     var cryptoObject: FingerprintManager.CryptoObject? = null
 
-    private lateinit var mActivity: Activity
-    private lateinit var mSharedPreferences: SharedPreferences
-
-    private var mFingerprintUiHelper: FingerprintUiHelper? = null
+    private var authenticationFingerprint: AuthenticationFingerprint? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,19 +43,23 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
 
     override fun onResume() {
         super.onResume()
-        if (stage == Stage.FINGERPRINT) mFingerprintUiHelper?.startListening(cryptoObject)
+        if (stage == Stage.FINGERPRINT) {
+            // User can remove his security option, add or remove fingerprint when dialog is opened
+            if (authenticationFingerprint?.isFingerprintAuthAvailable() == true) {
+                cryptoObject?.let { authenticationFingerprint?.startListening(it) }
+            } else {
+                goToBackup()
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        mFingerprintUiHelper?.stopListening()
+        authenticationFingerprint?.stopListening()
     }
-
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        mActivity = activity
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -76,24 +74,25 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
         passwordView.setOnEditorActionListener { _, actionId, _ -> onEditorAction(actionId) }
 
         if (SystemServices.hasMarshmallow()) {
-            mFingerprintUiHelper = FingerprintUiHelper(SystemServices(context.applicationContext), fingerprintIconView, fingerprintStatusView, this)
+            authenticationFingerprint = AuthenticationFingerprint(
+                    SystemServices(context.applicationContext),
+                    AuthenticationFingerprintView(fingerprintIconView, fingerprintStatusView), this)
         }
 
         updateStage()
 
         // If fingerprint authentication is not available, switch immediately to the backup (password) screen.
-        if (mFingerprintUiHelper?.isFingerprintAuthAvailable != true) {
+        if (authenticationFingerprint?.isFingerprintAuthAvailable() != true) {
             goToBackup()
         }
     }
 
     override fun onAuthenticated() {
-        // Callback from FingerprintUiHelper. Let the activity know that authentication was successful.
         fingerprintAuthenticationSuccessListener?.invoke(cryptoObject)
         dismiss()
     }
 
-    override fun onError() {
+    override fun onAuthenticationError() {
         goToBackup()
     }
 
@@ -105,6 +104,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
     }
 
     private fun updateStage() {
+        Log.i("updateStage", stage.name)
         when (stage) {
             Stage.FINGERPRINT -> showFingerprintStage()
             Stage.NEW_FINGERPRINT_ENROLLED, Stage.PASSWORD -> showBackupStage()
@@ -142,10 +142,11 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
 
         passwordView.requestFocus()
         // Show the keyboard.
-        passwordView.postDelayed(mShowKeyboardRunnable, 500)
+
+        passwordView.showKeyboard(delay = 500)
 
         // Fingerprint is not used anymore. Stop listening for it.
-        mFingerprintUiHelper?.stopListening()
+        authenticationFingerprint?.stopListening()
     }
 
     /**
@@ -160,14 +161,8 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
         }
 
         if (stage == Stage.NEW_FINGERPRINT_ENROLLED) {
-            val editor = mSharedPreferences.edit()
-            editor.putBoolean(getString(R.string.authentication_fingerprint_use_to_authenticate_key), useFingerprintInFutureView.isChecked)
-            editor.apply()
-            if (useFingerprintInFutureView.isChecked) {
-                // Re-create the key so that fingerprints including new ones are validated.
-                fingerprintInvalidationListener?.invoke(true)
-                stage = Stage.FINGERPRINT
-            }
+            // Re-create the key, if user decided to use fingerprint in future.
+            fingerprintInvalidationListener?.invoke(useFingerprintInFutureView.isChecked)
         }
         passwordView.setText("")
         authenticationSuccessListener?.invoke()
@@ -180,8 +175,6 @@ class AuthenticationDialog : AppCompatDialogFragment(), FingerprintUiHelper.Call
     private fun checkPassword(password: String): Boolean {
         return passwordVerificationListener?.invoke(password) ?: false
     }
-
-    private val mShowKeyboardRunnable = Runnable { passwordView.showKeyboard() }
 
     /**
      * Enumeration to indicate which authentication method the user is trying to authenticate with.

@@ -7,7 +7,7 @@ buildscript {
         min_sdk_version = 18
         app_version_number = 1
         app_version_name = '1.0'
-        kotlin_version = '1.1.4-3'
+        kotlin_version = '1.1.50'
         gms_version = '11.2.0'
         support_version = '26.0.1'
         constraint_layout_version = '1.0.2'

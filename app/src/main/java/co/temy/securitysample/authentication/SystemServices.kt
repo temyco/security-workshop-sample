@@ -1,13 +1,17 @@
-package co.temy.securitysample
+package co.temy.securitysample.authentication
 
 import android.annotation.TargetApi
+import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
 import android.os.CancellationSignal
 import android.os.Handler
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat
 import android.support.v7.app.AlertDialog
+import co.temy.securitysample.BuildConfig
+import co.temy.securitysample.R
 import co.temy.securitysample.extentions.openLockScreenSettings
 
 @TargetApi(Build.VERSION_CODES.M)
@@ -18,6 +22,12 @@ class SystemServices(private val context: Context) {
     }
 
     private val keyguardManager: KeyguardManager
+
+    /**
+     * There is a nice [FingerprintManagerCompat] class that makes all dirty work for us, but as always, shit happens.
+     * Behind the scenes it is using `Context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)`
+     * method, that is returning false on 23 API emulators, when in fact [FingerprintManager] is there and is working fine.
+     */
     private var fingerprintManager: FingerprintManager? = null
 
     init {
@@ -33,8 +43,17 @@ class SystemServices(private val context: Context) {
 
     fun hasEnrolledFingerprints() = fingerprintManager?.hasEnrolledFingerprints() ?: false
 
-    fun authenticateFingerprint(cryptoObject: FingerprintManager.CryptoObject, cancellationSignal: CancellationSignal, flags: Int, callback: FingerprintManager.AuthenticationCallback, handler: Handler) {
+    fun authenticateFingerprint(cryptoObject: FingerprintManager.CryptoObject, cancellationSignal: CancellationSignal, flags: Int, callback: FingerprintManager.AuthenticationCallback, handler: Handler?) {
         fingerprintManager?.authenticate(cryptoObject, cancellationSignal, flags, callback, handler)
+    }
+
+    fun showAuthenticationScreen(activity: Activity, requestCode: Int, title: String? = null, description: String? = null) {
+        // Create the Confirm Credentials screen. You can customize the title and description. Or
+        // we will provide a generic one for you if you leave it null
+        val intent = keyguardManager.createConfirmDeviceCredentialIntent(title, description)
+        if (intent != null) {
+            activity.startActivityForResult(intent, requestCode)
+        }
     }
 
     fun showDeviceSecurityAlert(): AlertDialog {

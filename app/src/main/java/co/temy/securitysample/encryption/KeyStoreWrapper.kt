@@ -6,7 +6,7 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import co.temy.securitysample.SystemServices
+import co.temy.securitysample.authentication.SystemServices
 import java.math.BigInteger
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -19,24 +19,15 @@ import javax.security.auth.x500.X500Principal
 
 class KeyStoreWrapper(private val context: Context) {
 
-    data class KeyData(val alias: String, val creationDate: Date)
-
     private val keyStore: KeyStore
 
     init {
         keyStore = createAndroidKeyStore()
     }
 
-    /**
-     * Returns list of currently existed keys in AndroidKeyStore.
-     */
-    fun getAllKeyAliases(): List<KeyData> {
-        return keyStore.aliases().toList().map { KeyData(it, keyStore.getCreationDate(it)) }
-    }
+    fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey = keyStore.getKey(alias, null) as SecretKey
 
-    fun getSymmetricKey(alias: String): SecretKey = keyStore.getKey(alias, null) as SecretKey
-
-    fun getAsymmetricKeyPair(alias: String): KeyPair {
+    fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair {
         val privateKey = keyStore.getKey(alias, null) as PrivateKey
         val publicKey = keyStore.getCertificate(alias).publicKey
         return KeyPair(publicKey, privateKey)
@@ -56,17 +47,25 @@ class KeyStoreWrapper(private val context: Context) {
      * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
      */
     @TargetApi(Build.VERSION_CODES.M)
-    fun createAndroidKeyStoreSymmetricKey(alias: String, userAuthenticationRequired: Boolean = false, invalidatedByBiometricEnrollment: Boolean = false): SecretKey? {
+    fun createAndroidKeyStoreSymmetricKey(
+            alias: String,
+            userAuthenticationRequired: Boolean = false,
+            invalidatedByBiometricEnrollment: Boolean = true,
+            userAuthenticationValidityDurationSeconds: Int = -1,
+            userAuthenticationValidWhileOnBody: Boolean = true): SecretKey? {
+
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                 // Require the user to authenticate with a fingerprint to authorize every use of the key
                 .setUserAuthenticationRequired(userAuthenticationRequired)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                // Not working on api 23, try higher ?
-                .setRandomizedEncryptionRequired(false)
+                .setUserAuthenticationValidityDurationSeconds(userAuthenticationValidityDurationSeconds)
+        // Not working on api 23, try higher ?
+        //.setRandomizedEncryptionRequired(false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
+            builder.setUserAuthenticationValidWhileOnBody(userAuthenticationValidWhileOnBody)
         }
         keyGenerator?.init(builder.build())
         return keyGenerator?.generateKey()
@@ -77,11 +76,11 @@ class KeyStoreWrapper(private val context: Context) {
      * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
      */
     @TargetApi(Build.VERSION_CODES.M)
-    fun createAndroidKeyStoreAsymmetricKey(alias: String, userAuthenticationRequired: Boolean = false, invalidatedByBiometricEnrollment: Boolean = false): KeyPair {
+    fun createAndroidKeyStoreAsymmetricKey(alias: String): KeyPair {
         val generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
 
         if (SystemServices.hasMarshmallow()) {
-            initGeneratorWithKeyGenParameterSpec(generator, alias, userAuthenticationRequired, invalidatedByBiometricEnrollment)
+            initGeneratorWithKeyGenParameterSpec(generator, alias)
         } else {
             initGeneratorWithKeyPairGeneratorSpec(generator, alias)
         }
@@ -105,8 +104,7 @@ class KeyStoreWrapper(private val context: Context) {
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private fun initGeneratorWithKeyGenParameterSpec(
-            generator: KeyPairGenerator, alias: String, userAuthenticationRequired: Boolean, invalidatedByBiometricEnrollment: Boolean) {
+    private fun initGeneratorWithKeyGenParameterSpec(generator: KeyPairGenerator, alias: String) {
         val startDate = Calendar.getInstance()
         val endDate = Calendar.getInstance()
         endDate.add(Calendar.YEAR, 20)
@@ -118,10 +116,6 @@ class KeyStoreWrapper(private val context: Context) {
                 .setCertificateNotAfter(endDate.time)
                 .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-                .setUserAuthenticationRequired(userAuthenticationRequired)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
-        }
         generator.initialize(builder.build())
     }
 

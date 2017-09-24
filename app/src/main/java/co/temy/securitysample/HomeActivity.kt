@@ -2,12 +2,17 @@ package co.temy.securitysample
 
 import android.app.Activity
 import android.content.Intent
+import android.hardware.fingerprint.FingerprintManager
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.temy.securitysample.authentication.AuthenticationDialog
+import co.temy.securitysample.authentication.AuthenticationDialog.Stage.*
+import co.temy.securitysample.authentication.EncryptionServices
+import co.temy.securitysample.authentication.SystemServices
 import co.temy.securitysample.extentions.startSecretActivity
 import co.temy.securitysample.extentions.startSignUpActivity
 import kotlinx.android.synthetic.main.activity_home.*
@@ -18,6 +23,8 @@ class HomeActivity : BaseSecureActivity() {
     companion object {
         val ADD_SECRET_REQUEST_CODE = 300
     }
+
+    private val storage: Storage by lazy(LazyThreadSafetyMode.NONE) { Storage(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +37,12 @@ class HomeActivity : BaseSecureActivity() {
         secretsView.adapter = SecretsAdapter(secrets) { onSecretClick(it) }
 
         emptyView.visibility = if (secrets.isEmpty()) View.VISIBLE else View.GONE
+
+        if (SystemServices.hasMarshmallow() && EncryptionServices(applicationContext).validateConfirmCredentialsAuthentication()) {
+            Log.i("ФФ", "ALL IS GOOD")
+        } else {
+            Log.i("ФФ", "Need confirmation")
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -60,9 +73,25 @@ class HomeActivity : BaseSecureActivity() {
 
     private fun onSecretClick(secret: Storage.SecretData) {
         val dialog = AuthenticationDialog()
+        if (storage.isFingerprintAllowed() && systemServices.hasEnrolledFingerprints()) {
+            dialog.cryptoObjectToAuthenticateWith = EncryptionServices(applicationContext).prepareFingerprintCryptoObject()
+            dialog.fingerprintInvalidationListener = { onFingerprintInvalidation(it) }
+            dialog.fingerprintAuthenticationSuccessListener = { validateKeyAuthentication(secret, it) }
+            if (dialog.cryptoObjectToAuthenticateWith == null) dialog.stage = NEW_FINGERPRINT_ENROLLED else dialog.stage = FINGERPRINT
+        } else {
+            dialog.stage = PASSWORD
+        }
         dialog.authenticationSuccessListener = { startSecretActivity(ADD_SECRET_REQUEST_CODE, SecretActivity.MODE_VIEW, secret) }
         dialog.passwordVerificationListener = { validatePassword(it) }
         dialog.show(supportFragmentManager, "Authentication")
+    }
+
+    private fun validateKeyAuthentication(secret: Storage.SecretData, cryptoObject: FingerprintManager.CryptoObject) {
+        if (EncryptionServices(applicationContext).validateFingerprintAuthentication(cryptoObject)) {
+            startSecretActivity(ADD_SECRET_REQUEST_CODE, SecretActivity.MODE_VIEW, secret)
+        } else {
+            onSecretClick(secret)
+        }
     }
 
     /**
@@ -70,8 +99,18 @@ class HomeActivity : BaseSecureActivity() {
      */
     private fun validatePassword(inputtedPassword: String): Boolean {
         val storage = Storage(this)
-        return EncryptionService(applicationContext).decrypt(storage.getPassword()) == inputtedPassword
+        return EncryptionServices(applicationContext).decrypt(storage.getPassword()) == inputtedPassword
 
+    }
+
+    /**
+     * Fingerprint was invalidated, decide what to do in this case.
+     */
+    private fun onFingerprintInvalidation(useInFuture: Boolean) {
+        storage.saveFingerprintAllowed(useInFuture)
+        if (useInFuture) {
+            EncryptionServices(applicationContext).createFingerprintKey()
+        }
     }
 
     private fun onAddPasswordClick() {

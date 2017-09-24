@@ -1,6 +1,7 @@
 package co.temy.securitysample.authentication
 
 import android.annotation.TargetApi
+import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
@@ -44,6 +45,15 @@ class SystemServices(private val context: Context) {
 
     fun authenticateFingerprint(cryptoObject: FingerprintManager.CryptoObject, cancellationSignal: CancellationSignal, flags: Int, callback: FingerprintManager.AuthenticationCallback, handler: Handler?) {
         fingerprintManager?.authenticate(cryptoObject, cancellationSignal, flags, callback, handler)
+    }
+
+    fun showAuthenticationScreen(activity: Activity, requestCode: Int, title: String? = null, description: String? = null) {
+        // Create the Confirm Credentials screen. You can customize the title and description. Or
+        // we will provide a generic one for you if you leave it null
+        val intent = keyguardManager.createConfirmDeviceCredentialIntent(title, description)
+        if (intent != null) {
+            activity.startActivityForResult(intent, requestCode)
+        }
     }
 
     fun showDeviceSecurityAlert(): AlertDialog {

@@ -1,29 +1,27 @@
 package co.temy.securitysample
 
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
 import android.hardware.fingerprint.FingerprintManager
-import android.os.Build
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.temy.securitysample.authentication.AuthenticationDialog
 import co.temy.securitysample.authentication.AuthenticationDialog.Stage.*
 import co.temy.securitysample.authentication.EncryptionServices
+import co.temy.securitysample.authentication.SystemServices
 import co.temy.securitysample.extentions.startSecretActivity
 import co.temy.securitysample.extentions.startSignUpActivity
 import kotlinx.android.synthetic.main.activity_home.*
-import javax.crypto.IllegalBlockSizeException
 
 
 class HomeActivity : BaseSecureActivity() {
 
     companion object {
         val ADD_SECRET_REQUEST_CODE = 300
-        val KEY_VALIDATION_DATA = byteArrayOf(0, 1, 0, 1)
     }
 
     private val storage: Storage by lazy(LazyThreadSafetyMode.NONE) { Storage(applicationContext) }
@@ -39,6 +37,12 @@ class HomeActivity : BaseSecureActivity() {
         secretsView.adapter = SecretsAdapter(secrets) { onSecretClick(it) }
 
         emptyView.visibility = if (secrets.isEmpty()) View.VISIBLE else View.GONE
+
+        if (SystemServices.hasMarshmallow() && EncryptionServices(applicationContext).validateConfirmCredentialsAuthentication()) {
+            Log.i("ФФ", "ALL IS GOOD")
+        } else {
+            Log.i("ФФ", "Need confirmation")
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -70,10 +74,10 @@ class HomeActivity : BaseSecureActivity() {
     private fun onSecretClick(secret: Storage.SecretData) {
         val dialog = AuthenticationDialog()
         if (storage.isFingerprintAllowed() && systemServices.hasEnrolledFingerprints()) {
-            dialog.cryptoObject = EncryptionServices(applicationContext).prepareFingerprintCryptoObject()
+            dialog.cryptoObjectToAuthenticateWith = EncryptionServices(applicationContext).prepareFingerprintCryptoObject()
             dialog.fingerprintInvalidationListener = { onFingerprintInvalidation(it) }
-            dialog.fingerprintAuthenticationSuccessListener = { validateKeyInvalidation(secret, it) }
-            if (dialog.cryptoObject == null) dialog.stage = NEW_FINGERPRINT_ENROLLED else dialog.stage = FINGERPRINT
+            dialog.fingerprintAuthenticationSuccessListener = { validateKeyAuthentication(secret, it) }
+            if (dialog.cryptoObjectToAuthenticateWith == null) dialog.stage = NEW_FINGERPRINT_ENROLLED else dialog.stage = FINGERPRINT
         } else {
             dialog.stage = PASSWORD
         }
@@ -82,12 +86,10 @@ class HomeActivity : BaseSecureActivity() {
         dialog.show(supportFragmentManager, "Authentication")
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun validateKeyInvalidation(secret: Storage.SecretData, cryptoObject: FingerprintManager.CryptoObject?) {
-        try {
-            cryptoObject?.cipher?.doFinal(KEY_VALIDATION_DATA)
+    private fun validateKeyAuthentication(secret: Storage.SecretData, cryptoObject: FingerprintManager.CryptoObject) {
+        if (EncryptionServices(applicationContext).validateFingerprintAuthentication(cryptoObject)) {
             startSecretActivity(ADD_SECRET_REQUEST_CODE, SecretActivity.MODE_VIEW, secret)
-        } catch (e: IllegalBlockSizeException) {
+        } else {
             onSecretClick(secret)
         }
     }

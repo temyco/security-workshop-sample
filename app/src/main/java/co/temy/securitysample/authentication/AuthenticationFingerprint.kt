@@ -1,5 +1,6 @@
 package co.temy.securitysample.authentication
 
+import android.annotation.TargetApi
 import android.hardware.fingerprint.FingerprintManager
 import android.os.CancellationSignal
 import android.os.Handler
@@ -40,6 +41,7 @@ class AuthenticationFingerprint(
         }
     }
 
+
     private val fingerprintCallback = object : FingerprintManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             if (!selfCancelled) {
@@ -58,10 +60,11 @@ class AuthenticationFingerprint(
             showErrorAndHideItAfterDelay()
         }
 
+        @TargetApi (23)
         override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
             handler.removeCallbacks(hideErrorRunnable)
             view.showSuccessView()
-            handler.postDelayed({ callback.onAuthenticated() }, SUCCESS_DELAY_MILLIS)
+            handler.postDelayed({ callback.onAuthenticated(result.cryptoObject) }, SUCCESS_DELAY_MILLIS)
         }
 
         private fun showErrorAndHideItAfterDelay() {
@@ -73,7 +76,7 @@ class AuthenticationFingerprint(
     }
 
     interface Callback {
-        fun onAuthenticated()
+        fun onAuthenticated(cryptoObject: FingerprintManager.CryptoObject)
         fun onAuthenticationError()
     }
 }

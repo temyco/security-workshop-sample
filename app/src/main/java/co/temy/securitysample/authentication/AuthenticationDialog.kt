@@ -21,7 +21,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprin
     var passwordVerificationListener: ((password: String) -> Boolean)? = null
     var authenticationSuccessListener: (() -> Unit)? = null
 
-    var fingerprintAuthenticationSuccessListener: ((cryptoObject: FingerprintManager.CryptoObject?) -> Unit)? = null
+    var fingerprintAuthenticationSuccessListener: ((cryptoObject: FingerprintManager.CryptoObject) -> Unit)? = null
     var fingerprintInvalidationListener: ((invalidatedByBiometricEnrollment: Boolean) -> Unit)? = null
 
     var stage = Stage.FINGERPRINT
@@ -29,7 +29,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprin
     /**
      * The crypto object to be passed in when authenticating with fingerprint.
      */
-    var cryptoObject: FingerprintManager.CryptoObject? = null
+    var cryptoObjectToAuthenticateWith: FingerprintManager.CryptoObject? = null
 
     private var authenticationFingerprint: AuthenticationFingerprint? = null
 
@@ -46,7 +46,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprin
         if (stage == Stage.FINGERPRINT) {
             // User can remove his security option, add or remove fingerprint when dialog is opened
             if (authenticationFingerprint?.isFingerprintAuthAvailable() == true) {
-                cryptoObject?.let { authenticationFingerprint?.startListening(it) }
+                cryptoObjectToAuthenticateWith?.let { authenticationFingerprint?.startListening(it) }
             } else {
                 goToBackup()
             }
@@ -87,7 +87,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprin
         }
     }
 
-    override fun onAuthenticated() {
+    override fun onAuthenticated(cryptoObject: FingerprintManager.CryptoObject) {
         fingerprintAuthenticationSuccessListener?.invoke(cryptoObject)
         dismiss()
     }

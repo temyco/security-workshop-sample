@@ -3,6 +3,12 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+            android:title="@string/home_menu_fingerprint"
+            android:checkable="true"
+            app:showAsAction="never"
+            android:id="@+id/menu_fingerprint"/>
+
+    <item
             android:title="@string/home_menu_reset"
             app:showAsAction="never"
             android:id="@+id/menu_reset"/>

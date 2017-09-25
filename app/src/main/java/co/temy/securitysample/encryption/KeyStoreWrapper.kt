@@ -25,14 +25,20 @@ class KeyStoreWrapper(private val context: Context) {
         keyStore = createAndroidKeyStore()
     }
 
-    fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey = keyStore.getKey(alias, null) as SecretKey
+    fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 
-    fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair {
-        val privateKey = keyStore.getKey(alias, null) as PrivateKey
+    fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
+        val privateKey = keyStore.getKey(alias, null) as PrivateKey?
         val publicKey = keyStore.getCertificate(alias).publicKey
-        return KeyPair(publicKey, privateKey)
+
+        return if (privateKey != null && publicKey != null) {
+            KeyPair(publicKey, privateKey)
+        } else {
+            null
+        }
     }
 
+    fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
     /**
      * Generates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
      * [KeyProperties.ENCRYPTION_PADDING_PKCS7] using default provider.

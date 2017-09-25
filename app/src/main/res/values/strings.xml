@@ -25,6 +25,7 @@
 
     <!-- Strings related to home screen -->
     <string name="home_menu_reset">Reset</string>
+    <string name="home_menu_fingerprint">Use fingerprint</string>
 
     <!-- Strings related to sign up -->
     <string name="sign_up_activity_title">Sign Up</string>

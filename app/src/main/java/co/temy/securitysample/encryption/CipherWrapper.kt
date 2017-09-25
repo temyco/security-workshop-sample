@@ -39,7 +39,7 @@ class CipherWrapper(val transformation: String) {
      * is an created Initialization Vector and `bbbbbb` the  encrypted to data. `false` by default.
      *
      */
-    fun encrypt(data: String, key: Key, useInitializationVector: Boolean = false): String {
+    fun encrypt(data: String, key: Key?, useInitializationVector: Boolean = false): String {
         cipher.init(Cipher.ENCRYPT_MODE, key)
 
         var result = ""
@@ -64,7 +64,7 @@ class CipherWrapper(val transformation: String) {
      * as a prefix to the encryption data, separated with [IV_SEPARATOR]. Data example - "aaaaaa]bbbbbb", where `aaaaaa`
      * is an Initialization Vector and `bbbbbb` the  data to decrypt. `false` by default.
      */
-    fun decrypt(data: String, key: Key, useInitializationVector: Boolean = false): String {
+    fun decrypt(data: String, key: Key?, useInitializationVector: Boolean = false): String {
         var encodedString: String
 
         if (useInitializationVector) {
@@ -88,7 +88,7 @@ class CipherWrapper(val transformation: String) {
     /**
      * Wraps(encrypts) a key with another key.
      */
-    fun wrapKey(keyToBeWrapped: Key, keyToWrapWith: Key): String {
+    fun wrapKey(keyToBeWrapped: Key, keyToWrapWith: Key?): String {
         cipher.init(Cipher.WRAP_MODE, keyToWrapWith)
         val decodedData = cipher.wrap(keyToBeWrapped)
         return Base64.encodeToString(decodedData, Base64.DEFAULT)
@@ -97,7 +97,7 @@ class CipherWrapper(val transformation: String) {
     /**
      * Unwraps(decrypts) a key with another key. Requires wrapped key algorithm and type.
      */
-    fun unWrapKey(wrappedKeyData: String, algorithm: String, wrappedKeyType: Int, keyToUnWrapWith: Key): Key {
+    fun unWrapKey(wrappedKeyData: String, algorithm: String, wrappedKeyType: Int, keyToUnWrapWith: Key?): Key {
         val encryptedKeyData = Base64.decode(wrappedKeyData, Base64.DEFAULT)
         cipher.init(Cipher.UNWRAP_MODE, keyToUnWrapWith)
         return cipher.unwrap(encryptedKeyData, algorithm, wrappedKeyType)

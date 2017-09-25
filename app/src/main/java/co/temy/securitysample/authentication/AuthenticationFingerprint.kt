@@ -29,7 +29,7 @@ class AuthenticationFingerprint(
         if (isFingerprintAuthAvailable()) {
             mCancellationSignal = CancellationSignal()
             selfCancelled = false
-            systemServices.authenticateFingerprint(cryptoObject,  mCancellationSignal!!, 0, fingerprintCallback, null)
+            systemServices.authenticateFingerprint(cryptoObject, mCancellationSignal!!, 0, fingerprintCallback, null)
         }
     }
 
@@ -40,7 +40,6 @@ class AuthenticationFingerprint(
             mCancellationSignal = null
         }
     }
-
 
     private val fingerprintCallback = object : FingerprintManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
@@ -60,7 +59,7 @@ class AuthenticationFingerprint(
             showErrorAndHideItAfterDelay()
         }
 
-        @TargetApi (23)
+        @TargetApi(23)
         override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
             handler.removeCallbacks(hideErrorRunnable)
             view.showSuccessView()

@@ -8,6 +8,7 @@ import android.security.keystore.UserNotAuthenticatedException
 import co.temy.securitysample.Storage
 import co.temy.securitysample.encryption.CipherWrapper
 import co.temy.securitysample.encryption.KeyStoreWrapper
+import java.security.InvalidKeyException
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.SecretKey
@@ -27,6 +28,7 @@ class EncryptionServices(context: Context) {
     private val storage = Storage(context)
     private val keyStoreWrapper = KeyStoreWrapper(context)
 
+
     /*
      * Encryption Stage
      */
@@ -37,6 +39,10 @@ class EncryptionServices(context: Context) {
         } else {
             createDefaultSymmetricKey()
         }
+    }
+
+    fun removeMasterKey() {
+        keyStoreWrapper.removeAndroidKeyStoreKey(MASTER_KEY)
     }
 
     fun encrypt(data: String): String {
@@ -79,14 +85,14 @@ class EncryptionServices(context: Context) {
     private fun encryptWithDefaultSymmetricKey(data: String): String {
         val masterKey = keyStoreWrapper.getAndroidKeyStoreAsymmetricKeyPair(MASTER_KEY)
         val encryptionKey = storage.getEncryptionKey()
-        val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey.private) as SecretKey
+        val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey?.private) as SecretKey
         return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).encrypt(data, symmetricKey, true)
     }
 
     private fun decryptWithDefaultSymmetricKey(data: String): String {
         val masterKey = keyStoreWrapper.getAndroidKeyStoreAsymmetricKeyPair(MASTER_KEY)
         val encryptionKey = storage.getEncryptionKey()
-        val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey.private) as SecretKey
+        val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey?.private) as SecretKey
         return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, symmetricKey, true)
     }
 
@@ -101,8 +107,14 @@ class EncryptionServices(context: Context) {
         }
     }
 
+    fun removeFingerprintKey() {
+        if (SystemServices.hasMarshmallow()) {
+            keyStoreWrapper.removeAndroidKeyStoreKey(FINGERPRINT_KEY)
+        }
+    }
+
     /**
-     * @return initialized crypto object or null if fingerprint key was invalidated.
+     * @return initialized crypto object or null if fingerprint key was invalidated or not created yet.
      */
     fun prepareFingerprintCryptoObject(): FingerprintManager.CryptoObject? {
         return if (SystemServices.hasMarshmallow()) {
@@ -115,6 +127,9 @@ class EncryptionServices(context: Context) {
                 // VerifyError is will be thrown on API lower then 23 if we will use unedited
                 // class reference directly in catch block
                 if (e is KeyPermanentlyInvalidatedException || e is IllegalBlockSizeException) {
+                    return null
+                } else if (e is InvalidKeyException) {
+                    // Fingerprint key was not generated
                     return null
                 }
                 throw e
@@ -137,6 +152,7 @@ class EncryptionServices(context: Context) {
         }
     }
 
+
     /*
      * Confirm Credential Stage
      */
@@ -150,19 +166,31 @@ class EncryptionServices(context: Context) {
         }
     }
 
+    fun removeConfirmCredentialsKey() {
+        keyStoreWrapper.removeAndroidKeyStoreKey(CONFIRM_CREDENTIALS_KEY)
+    }
 
     fun validateConfirmCredentialsAuthentication(): Boolean {
+        if (!SystemServices.hasMarshmallow()) {
+            return false
+        }
+
         val symmetricKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(CONFIRM_CREDENTIALS_KEY)
         val cipherWrapper = CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC)
 
         try {
-            cipherWrapper.encrypt(KEY_VALIDATION_DATA.toString(), symmetricKey)
-            return true
+            return if (symmetricKey != null) {
+                cipherWrapper.encrypt(KEY_VALIDATION_DATA.toString(), symmetricKey)
+                true
+            } else false
         } catch (e: Throwable) {
             // VerifyError is will be thrown on API lower then 23 if we will use unedited
             // class reference directly in catch block
             if (e is UserNotAuthenticatedException || e is KeyPermanentlyInvalidatedException) {
                 // User is not authenticated or the lock screen has been disabled or reset
+                return false
+            } else if (e is InvalidKeyException) {
+                // Confirm Credentials key was not generated
                 return false
             }
             throw e

@@ -50,9 +50,11 @@ class SystemServices(private val context: Context) {
     fun showAuthenticationScreen(activity: Activity, requestCode: Int, title: String? = null, description: String? = null) {
         // Create the Confirm Credentials screen. You can customize the title and description. Or
         // we will provide a generic one for you if you leave it null
-        val intent = keyguardManager.createConfirmDeviceCredentialIntent(title, description)
-        if (intent != null) {
-            activity.startActivityForResult(intent, requestCode)
+        if (hasMarshmallow()) {
+            val intent = keyguardManager.createConfirmDeviceCredentialIntent(title, description)
+            if (intent != null) {
+                activity.startActivityForResult(intent, requestCode)
+            }
         }
     }
 

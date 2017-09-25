@@ -4,27 +4,31 @@ import android.app.Activity
 import android.content.Intent
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import co.temy.securitysample.authentication.AuthenticationDialog
 import co.temy.securitysample.authentication.AuthenticationDialog.Stage.*
 import co.temy.securitysample.authentication.EncryptionServices
-import co.temy.securitysample.authentication.SystemServices
+import co.temy.securitysample.extentions.openSecuritySettings
 import co.temy.securitysample.extentions.startSecretActivity
 import co.temy.securitysample.extentions.startSignUpActivity
 import kotlinx.android.synthetic.main.activity_home.*
+import kotlinx.android.synthetic.main.activity_sign_up.*
 
 
 class HomeActivity : BaseSecureActivity() {
 
     companion object {
         val ADD_SECRET_REQUEST_CODE = 300
+        val AUTHENTICATION_SCREEN_CODE = 301
     }
 
     private val storage: Storage by lazy(LazyThreadSafetyMode.NONE) { Storage(applicationContext) }
+    private var isAuthenticating = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,11 +41,13 @@ class HomeActivity : BaseSecureActivity() {
         secretsView.adapter = SecretsAdapter(secrets) { onSecretClick(it) }
 
         emptyView.visibility = if (secrets.isEmpty()) View.VISIBLE else View.GONE
+    }
 
-        if (SystemServices.hasMarshmallow() && EncryptionServices(applicationContext).validateConfirmCredentialsAuthentication()) {
-            Log.i("ФФ", "ALL IS GOOD")
-        } else {
-            Log.i("ФФ", "Need confirmation")
+    override fun onStart() {
+        super.onStart()
+        if (!isAuthenticating && !EncryptionServices(applicationContext).validateConfirmCredentialsAuthentication()) {
+            isAuthenticating = true
+            systemServices.showAuthenticationScreen(this, AUTHENTICATION_SCREEN_CODE)
         }
     }
 
@@ -50,11 +56,22 @@ class HomeActivity : BaseSecureActivity() {
         if (requestCode == ADD_SECRET_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             (secretsView.adapter as SecretsAdapter).update(Storage(baseContext).getSecrets())
             emptyView.visibility = if (secretsView.adapter.itemCount > 0) View.GONE else View.VISIBLE
+        } else if (requestCode == AUTHENTICATION_SCREEN_CODE) {
+            isAuthenticating = false
+            if (resultCode != Activity.RESULT_OK) {
+                finish()
+            }
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_home, menu)
+        val fingerprintItem = menu.findItem(R.id.menu_fingerprint)
+        if (systemServices.isFingerprintHardwareAvailable()) {
+            fingerprintItem.isChecked = Storage(applicationContext).isFingerprintAllowed()
+        } else {
+            fingerprintItem.isVisible = false
+        }
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -63,12 +80,39 @@ class HomeActivity : BaseSecureActivity() {
             onResetClick()
             true
         }
+
+        item.itemId == R.id.menu_fingerprint -> {
+            onUseFingerprintClick(item)
+            true
+        }
         else -> false
     }
 
     private fun onResetClick() {
+        val encryptionServices = EncryptionServices(applicationContext)
+        encryptionServices.removeMasterKey()
+        encryptionServices.removeFingerprintKey()
+        encryptionServices.removeConfirmCredentialsKey()
+
         Storage(baseContext).clear()
         startSignUpActivity()
+    }
+
+    private fun onUseFingerprintClick(item: MenuItem) {
+        if (!systemServices.hasEnrolledFingerprints()) {
+            item.isChecked = false
+            Snackbar.make(signUpRootView, R.string.sign_up_snack_message, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.sign_up_snack_action, { openSecuritySettings() })
+                    .show()
+        } else {
+            // Set new checkbox state
+            item.isChecked = !item.isChecked
+
+            Storage(baseContext).saveFingerprintAllowed(item.isChecked)
+            if (!item.isChecked) {
+                EncryptionServices(this).removeFingerprintKey()
+            }
+        }
     }
 
     private fun onSecretClick(secret: Storage.SecretData) {

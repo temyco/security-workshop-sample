@@ -77,28 +77,31 @@ class SignUpActivity : BaseSecureActivity() {
         if (cancel) {
             focusView?.requestFocus()
         } else {
+            createKeys(allowFingerprintView.isChecked)
+
             with(Storage(this)) {
-                savePassword(encryptPassword(passwordString))
+                savePassword(EncryptionServices(applicationContext).encrypt(passwordString))
                 saveFingerprintAllowed(allowFingerprintView.isChecked)
             }
+
             focusView?.hideKeyboard()
             startHomeActivity()
         }
     }
 
     /**
-     * Create master key and encrypt user password.
+     * Create master, fingerprint and confirm credentials keys.
      */
-    private fun encryptPassword(passwordString: String): String {
+    private fun createKeys(isFingerprintAllowed: Boolean) {
         val encryptionService = EncryptionServices(applicationContext)
         encryptionService.createMasterKey()
 
-        if (SystemServices.hasMarshmallow() && systemServices.hasEnrolledFingerprints()) {
-            encryptionService.createFingerprintKey()
+        if (SystemServices.hasMarshmallow()) {
+            if (isFingerprintAllowed && systemServices.hasEnrolledFingerprints()) {
+                encryptionService.createFingerprintKey()
+            }
             encryptionService.createConfirmCredentialsKey()
         }
-
-        return encryptionService.encrypt(passwordString)
     }
 
     private fun isPasswordValid(password: String) = !TextUtils.isEmpty(password) && password.length >= 6

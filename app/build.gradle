@@ -64,11 +64,11 @@ android {
             dimension "workshopStage"
         }
 
-        stage2level1 {
+        stage2 {
             dimension "workshopStage"
         }
 
-        stage3level1 {
+        stage3 {
             dimension "workshopStage"
         }
     }
@@ -98,12 +98,12 @@ android {
             java.srcDirs = ["src/stages/stage1/level4"]
         }
 
-        stage2level1 {
-            java.srcDirs = ["src/stages/stage2/level1"]
+        stage2 {
+            java.srcDirs = ["src/stages/stage2"]
         }
 
-        stage3level1 {
-            java.srcDirs = ["src/stages/stage3/level1"]
+        stage3 {
+            java.srcDirs = ["src/stages/stage3"]
         }
     }
 }

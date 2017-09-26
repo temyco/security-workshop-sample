@@ -33,6 +33,11 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
     fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 
     /**
+     * Remove key with given alias from Android Key Store
+     */
+    fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
+
+    /**
      * @return symmetric key from Default Key Store or null if any key with given alias exists
      */
     fun getDefaultKeyStoreSymmetricKey(alias: String, keyPassword: String): SecretKey? {
@@ -42,6 +47,7 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
             null
         }
     }
+
     /**
      * @return asymmetric keypair from Android Key Store or null if any key with given alias exists
      */
@@ -56,12 +62,27 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
         }
     }
 
-    @TargetApi(23)
-    fun createAndroidKeyStoreSymmetricKey(alias: String): SecretKey {
+    /**
+     * Creates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
+     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    fun createAndroidKeyStoreSymmetricKey(
+            alias: String,
+            userAuthenticationRequired: Boolean = false,
+            invalidatedByBiometricEnrollment: Boolean = true): SecretKey {
+
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                // Require the user to authenticate with a fingerprint to authorize every use of the key
+                .setUserAuthenticationRequired(userAuthenticationRequired)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+        // Not working on api 23, try higher ?
+        //.setRandomizedEncryptionRequired(false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
+        }
         keyGenerator.init(builder.build())
         return keyGenerator.generateKey()
     }

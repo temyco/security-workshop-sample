@@ -1,4 +1,4 @@
-package co.temy.securitysample.encryption
+package java.co.temy.securitysample.encryption
 
 import android.annotation.TargetApi
 import android.content.Context
@@ -17,19 +17,24 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.security.auth.x500.X500Principal
 
+/**
+ * This class wraps [KeyStore] class apis with some additional possibilities.
+ */
 class KeyStoreWrapper(private val context: Context) {
 
-    private val keyStore: KeyStore
+    private val keyStore: KeyStore = createAndroidKeyStore()
 
-    init {
-        keyStore = createAndroidKeyStore()
-    }
-
+    /**
+     * @return symmetric key from Android Key Store or null if any key with given alias exists
+     */
     fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 
+    /**
+     * @return asymmetric keypair from Android Key Store or null if any key with given alias exists
+     */
     fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
         val privateKey = keyStore.getKey(alias, null) as PrivateKey?
-        val publicKey = keyStore.getCertificate(alias).publicKey
+        val publicKey = keyStore.getCertificate(alias)?.publicKey
 
         return if (privateKey != null && publicKey != null) {
             KeyPair(publicKey, privateKey)
@@ -38,50 +43,16 @@ class KeyStoreWrapper(private val context: Context) {
         }
     }
 
-    fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
-    /**
-     * Generates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] using default provider.
-     */
-    fun generateDefaultSymmetricKey(): SecretKey {
-        val keyGenerator = KeyGenerator.getInstance("AES")
-        return keyGenerator.generateKey()
-    }
-
-    /**
-     * Creates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
-     */
-    @TargetApi(Build.VERSION_CODES.M)
-    fun createAndroidKeyStoreSymmetricKey(
-            alias: String,
-            userAuthenticationRequired: Boolean = false,
-            invalidatedByBiometricEnrollment: Boolean = true,
-            userAuthenticationValidityDurationSeconds: Int = -1,
-            userAuthenticationValidWhileOnBody: Boolean = true): SecretKey? {
-
+    @TargetApi(23)
+    fun createAndroidKeyStoreSymmetricKey(alias: String): SecretKey {
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                // Require the user to authenticate with a fingerprint to authorize every use of the key
-                .setUserAuthenticationRequired(userAuthenticationRequired)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                .setUserAuthenticationValidityDurationSeconds(userAuthenticationValidityDurationSeconds)
-        // Not working on api 23, try higher ?
-        //.setRandomizedEncryptionRequired(false)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
-            builder.setUserAuthenticationValidWhileOnBody(userAuthenticationValidWhileOnBody)
-        }
-        keyGenerator?.init(builder.build())
-        return keyGenerator?.generateKey()
+        keyGenerator.init(builder.build())
+        return keyGenerator.generateKey()
     }
 
-    /**
-     * Creates asymmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
-     */
-    @TargetApi(Build.VERSION_CODES.M)
     fun createAndroidKeyStoreAsymmetricKey(alias: String): KeyPair {
         val generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
 
@@ -92,6 +63,11 @@ class KeyStoreWrapper(private val context: Context) {
         }
 
         return generator.generateKeyPair()
+    }
+
+    fun generateDefaultSymmetricKey(): SecretKey {
+        val keyGenerator = KeyGenerator.getInstance("AES")
+        return keyGenerator.generateKey()
     }
 
     private fun initGeneratorWithKeyPairGeneratorSpec(generator: KeyPairGenerator, alias: String) {

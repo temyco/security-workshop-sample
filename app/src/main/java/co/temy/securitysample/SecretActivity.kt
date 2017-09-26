@@ -29,6 +29,7 @@ class SecretActivity : AppCompatActivity() {
     private val dateFormatter = SimpleDateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
 
     private var mode: Int = MODE_CREATE
+    private var password: String? = null
     private var secret: Storage.SecretData? = null
     private var aliasEditBg: Drawable? = null
     private var secretEditBg: Drawable? = null
@@ -41,6 +42,7 @@ class SecretActivity : AppCompatActivity() {
 
         storage = Storage(applicationContext)
         mode = intent.getIntExtra("mode", MODE_CREATE)
+        password = intent.getStringExtra("password")
         secret = intent.getSerializableExtra("secret").let { it as Storage.SecretData? }
 
         initViewForMode()
@@ -235,13 +237,13 @@ class SecretActivity : AppCompatActivity() {
      * Encrypt secret before saving it.
      */
     private fun encryptSecret(secret: String): String {
-        return EncryptionServices(applicationContext).encrypt(secret)
+        return EncryptionServices(applicationContext).encrypt(secret, password)
     }
 
     /**
      * Decrypt secret before showing it.
      */
     private fun decryptSecret(secret: String): String {
-        return EncryptionServices(applicationContext).decrypt(secret)
+        return EncryptionServices(applicationContext).decrypt(secret, password)
     }
 }

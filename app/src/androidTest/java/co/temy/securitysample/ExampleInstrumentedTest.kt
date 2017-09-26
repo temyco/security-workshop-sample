@@ -3,8 +3,8 @@ package co.temy.securitysample
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
 import android.util.Log
-import co.temy.securitysample.encryption.CipherWrapper
-import co.temy.securitysample.encryption.KeyStoreWrapper
+import java.co.temy.securitysample.encryption.CipherWrapper
+import java.co.temy.securitysample.encryption.KeyStoreWrapper
 import org.junit.Test
 import org.junit.runner.RunWith
 

@@ -21,29 +21,91 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField("String", "GOOGLE_VERIFICATION_API_KEY", '"AIzaSyAXp_YJBHPI4FLfJrlgjfFjMXbIVZWeKzk"')
+            buildConfigField("boolean", "IS_SAFETY_NET_ENABLED", "false")
         }
         debug {
             applicationIdSuffix ".debug"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField("String", "GOOGLE_VERIFICATION_API_KEY", '"AIzaSyAHtzX19lqT_nkuORRuOOa9abuQ9f3rZhk"')
-        }
-    }
-
-    flavorDimensions "production"
-
-    productFlavors {
-        production {
-            dimension "production"
             buildConfigField("boolean", "IS_SAFETY_NET_ENABLED", "false")
         }
 
-        withSafetyNet {
-            dimension "production"
+        debugSafatyNet {
+            initWith debug
             buildConfigField("boolean", "IS_SAFETY_NET_ENABLED", "true")
         }
     }
 
+    flavorDimensions "workshopStage"
+
+    productFlavors {
+        completed {
+            dimension "workshopStage"
+        }
+
+        stage0 {
+            dimension "workshopStage"
+        }
+
+        stage1level1 {
+            dimension "workshopStage"
+        }
+
+        stage1level2 {
+            dimension "workshopStage"
+        }
+
+        stage1level3 {
+            dimension "workshopStage"
+        }
+
+        stage1level4 {
+            dimension "workshopStage"
+        }
+
+        stage2level1 {
+            dimension "workshopStage"
+        }
+
+        stage3level1 {
+            dimension "workshopStage"
+        }
+    }
+
+    sourceSets {
+        completed {
+            java.srcDirs = ["src/stages/completed"]
+        }
+
+        stage0 {
+            java.srcDirs = ["src/stages/stage0"]
+        }
+
+        stage1level1 {
+            java.srcDirs = ["src/stages/stage1/level1"]
+        }
+
+        stage1level2 {
+            java.srcDirs = ["src/stages/stage1/level2"]
+        }
+
+        stage1level3 {
+            java.srcDirs = ["src/stages/stage1/level3"]
+        }
+
+        stage1level4 {
+            java.srcDirs = ["src/stages/stage1/level4"]
+        }
+
+        stage2level1 {
+            java.srcDirs = ["src/stages/stage2/level1"]
+        }
+
+        stage3level1 {
+            java.srcDirs = ["src/stages/stage3/level1"]
+        }
+    }
 }
 
 configurations.all {

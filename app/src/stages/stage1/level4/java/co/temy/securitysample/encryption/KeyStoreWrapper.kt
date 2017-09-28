@@ -27,14 +27,8 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
     private val defaultKeyStoreFile = File(context.filesDir, defaultKeyStoreName)
     private val defaultKeyStore = createDefaultKeyStore()
 
-    /**
-     * @return symmetric key from Android Key Store or null if any key with given alias exists
-     */
     fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 
-    /**
-     * @return symmetric key from Default Key Store or null if any key with given alias exists
-     */
     fun getDefaultKeyStoreSymmetricKey(alias: String, keyPassword: String): SecretKey? {
         return try {
             defaultKeyStore.getKey(alias, keyPassword.toCharArray()) as SecretKey
@@ -42,9 +36,7 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
             null
         }
     }
-    /**
-     * @return asymmetric keypair from Android Key Store or null if any key with given alias exists
-     */
+
     fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
         val privateKey = keyStore.getKey(alias, null) as PrivateKey?
         val publicKey = keyStore.getCertificate(alias)?.publicKey

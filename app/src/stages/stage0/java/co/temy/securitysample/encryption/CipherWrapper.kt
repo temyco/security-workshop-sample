@@ -8,24 +8,5 @@ import javax.crypto.Cipher
  */
 class CipherWrapper(val transformation: String) {
 
-    /**
-     * The place to keep all constants.
-     */
-    companion object {
-    }
-
-    /**
-     * Encrypts data using the key.
-     */
-    fun encrypt(data: String, key: Key?): String {
-        return data
-    }
-
-    /**
-     * Decrypts data using the key.
-     */
-    fun decrypt(data: String, key: Key?): String {
-        return data
-    }
 }
 

@@ -13,8 +13,6 @@ import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.util.*
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
 import javax.security.auth.x500.X500Principal
 
 /**
@@ -24,9 +22,6 @@ class KeyStoreWrapper(private val context: Context) {
 
     private val keyStore: KeyStore = createAndroidKeyStore()
 
-    /**
-     * @return asymmetric keypair from Android Key Store or null if any key with given alias exists
-     */
     fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
         val privateKey = keyStore.getKey(alias, null) as PrivateKey?
         val publicKey = keyStore.getCertificate(alias)?.publicKey
@@ -49,6 +44,8 @@ class KeyStoreWrapper(private val context: Context) {
 
         return generator.generateKeyPair()
     }
+
+    fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
 
     private fun initGeneratorWithKeyPairGeneratorSpec(generator: KeyPairGenerator, alias: String) {
         val startDate = Calendar.getInstance()

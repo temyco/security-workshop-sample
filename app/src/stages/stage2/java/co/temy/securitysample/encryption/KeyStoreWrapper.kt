@@ -27,19 +27,10 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
     private val defaultKeyStoreFile = File(context.filesDir, defaultKeyStoreName)
     private val defaultKeyStore = createDefaultKeyStore()
 
-    /**
-     * @return symmetric key from Android Key Store or null if any key with given alias exists
-     */
     fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 
-    /**
-     * Remove key with given alias from Android Key Store
-     */
     fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
 
-    /**
-     * @return symmetric key from Default Key Store or null if any key with given alias exists
-     */
     fun getDefaultKeyStoreSymmetricKey(alias: String, keyPassword: String): SecretKey? {
         return try {
             defaultKeyStore.getKey(alias, keyPassword.toCharArray()) as SecretKey
@@ -48,9 +39,6 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
         }
     }
 
-    /**
-     * @return asymmetric keypair from Android Key Store or null if any key with given alias exists
-     */
     fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
         val privateKey = keyStore.getKey(alias, null) as PrivateKey?
         val publicKey = keyStore.getCertificate(alias)?.publicKey
@@ -62,10 +50,6 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
         }
     }
 
-    /**
-     * Creates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
-     */
     @TargetApi(Build.VERSION_CODES.M)
     fun createAndroidKeyStoreSymmetricKey(
             alias: String,
@@ -75,11 +59,8 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                // Require the user to authenticate with a fingerprint to authorize every use of the key
                 .setUserAuthenticationRequired(userAuthenticationRequired)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-        // Not working on api 23, try higher ?
-        //.setRandomizedEncryptionRequired(false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
         }

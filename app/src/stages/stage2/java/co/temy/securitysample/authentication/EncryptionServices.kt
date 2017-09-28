@@ -13,9 +13,6 @@ import javax.crypto.IllegalBlockSizeException
 
 class EncryptionServices(context: Context) {
 
-    /**
-     * The place to keep all constants.
-     */
     companion object {
         val DEFAULT_KEY_STORE_NAME = "default_keystore"
         val MASTER_KEY = "MASTER_KEY"
@@ -30,9 +27,6 @@ class EncryptionServices(context: Context) {
      * Encryption Stage
      */
 
-    /**
-     * Create and save cryptography key, to protect Secrets with.
-     */
     fun createMasterKey(keyPassword: String? = null) {
         if (SystemServices.hasMarshmallow()) {
             createAndroidSymmetricKey()
@@ -41,15 +35,10 @@ class EncryptionServices(context: Context) {
         }
     }
 
-    /**
-     * Remove master cryptography key. May be used for re sign up functionality.
-     */
     fun removeMasterKey() {
+        keyStoreWrapper.removeAndroidKeyStoreKey(MASTER_KEY)
     }
 
-    /**
-     * Encrypt user password and Secrets with created master key.
-     */
     fun encrypt(data: String, keyPassword: String? = null): String {
         return if (SystemServices.hasMarshmallow()) {
             encryptWithAndroidSymmetricKey(data)
@@ -58,9 +47,6 @@ class EncryptionServices(context: Context) {
         }
     }
 
-    /**
-     * Decrypt user password and Secrets with created master key.
-     */
     fun decrypt(data: String, keyPassword: String? = null): String {
         return if (SystemServices.hasMarshmallow()) {
             decryptWithAndroidSymmetricKey(data)
@@ -102,27 +88,18 @@ class EncryptionServices(context: Context) {
      * Fingerprint Stage
      */
 
-    /**
-     * Create and save cryptography key, that will be used for fingerprint authentication.
-     */
     fun createFingerprintKey() {
         if (SystemServices.hasMarshmallow()) {
             keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY, true, true)
         }
     }
 
-    /**
-     * Remove fingerprint authentication cryptographic key.
-     */
     fun removeFingerprintKey() {
         if (SystemServices.hasMarshmallow()) {
             keyStoreWrapper.removeAndroidKeyStoreKey(FINGERPRINT_KEY)
         }
     }
 
-    /**
-     * @return initialized crypto object or null if fingerprint key was invalidated or not created yet.
-     */
     fun prepareFingerprintCryptoObject(): FingerprintManager.CryptoObject? {
         return if (SystemServices.hasMarshmallow()) {
             try {
@@ -144,17 +121,12 @@ class EncryptionServices(context: Context) {
         } else null
     }
 
-    /**
-     * @return true if cryptoObject was initialized successfully and key was not invalidated during authentication.
-     */
     @TargetApi(23)
     fun validateFingerprintAuthentication(cryptoObject: FingerprintManager.CryptoObject): Boolean {
         try {
             cryptoObject.cipher.doFinal(KEY_VALIDATION_DATA)
             return true
         } catch (e: Throwable) {
-            // VerifyError is will be thrown on API lower then 23 if we will use unedited
-            // class reference directly in catch block
             if (e is KeyPermanentlyInvalidatedException || e is IllegalBlockSizeException) {
                 return false
             }
@@ -166,22 +138,13 @@ class EncryptionServices(context: Context) {
      * Confirm Credential Stage
      */
 
-    /**
-     * Create and save cryptography key, that will be used for confirm credentials authentication.
-     */
     fun createConfirmCredentialsKey() {
 
     }
 
-    /**
-     * Remove confirm credentials authentication cryptographic key.
-     */
     fun removeConfirmCredentialsKey() {
     }
 
-    /**
-     * @return true if confirm credential authentication is not required.
-     */
     fun validateConfirmCredentialsAuthentication(): Boolean {
         return true
     }

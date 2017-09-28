@@ -22,19 +22,5 @@ import javax.security.auth.x500.X500Principal
  */
 class KeyStoreWrapper(private val context: Context) {
 
-    /**
-     * @return asymmetric keypair from Android Key Store or null if any key with given alias exists
-     */
-    fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
-        return null
-    }
-
-    fun createAndroidKeyStoreAsymmetricKey(alias: String): KeyPair? {
-        return null
-    }
-
-    private fun createAndroidKeyStore(): KeyStore? {
-        return null
-    }
 }
 

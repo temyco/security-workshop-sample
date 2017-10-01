@@ -4,14 +4,14 @@ Secrets Keeper is a simple secure application that uses Android Key Store API, F
 
 > _**Note.** This project is work in progress. Design, Workflow and end Goals can be changed during development._
 
-## Environment setup
+## Requirements
 
-To be able to build this project on your local machine, please follow the below instructions:
-
-- Download and install latest [Android Studio 3.0](https://developer.android.com/studio/preview/index.html)
-- Download and install all dependencies that Gradle ask's you to
-- Download and install Android Virtual Device(AVD) with API 23, using build in Android Virtual Device Manager from Android Studio
-- To cover compatibility issues and support newest features, probably, you will also need to install AVD API 18 and AVD API 24+
+- Support Android 18 + Devices
+- Allow user to access application only if Lock Screen is set
+- Protect user password with Encryption
+- Protect user secrets with Encryption
+- Allow user to access Secrets with Fingerprint
+- Add additional Confirm Credentials  protection
 
 ## Technologies Stack
 
@@ -20,79 +20,31 @@ To be able to build this project on your local machine, please follow the below 
 - AndroidKeyStore API
 - Fingerprint API
 - Confirm Credentials API
-- Safety Net API
 
-## Goals
+## Application Design
 
-- Build application based on Android Fingerprint Sample
-- Use JCA to show how to use encryption in Android
-- Use encryption to protect secrets
-- Use fingerprint get access to protected secrets
-- Use confirm credentials to protect application overall
-- Keep it simple
+- [Application Design](/pages/design.md)
+- [Application Workflow Charts](/pages/workflow.md)
 
-## Launch Workflow
 
-![](assets/launch-workflow.jpg)
+## Environment setup
 
+To be able to build this project on your local machine, please follow the below instructions:
+
+- Download and install latest [Android Studio 3.0](https://developer.android.com/studio/preview/index.html)
+- Download and install all dependencies that Gradle ask's you to
+- Download and install Android Virtual Device(AVD), with API 18, using build in Android Virtual Device Manager from Android Studio
+- To cover compatibility issues and support all of the features, you will also need to install AVD API 23 and AVD API 24
+
+## Workshop Guide
+
+Project structure was specially designed for workshops. Check the [Workshop page]() to try encryption in action, learn how to work
+with it on Android, cover compatibility issues, try fingerprint and confirm credentials APIs in a way of gradually completing 
+workshop stages, like in video game.
 
 ## Security Code Snippets
 
-- Create `KeyStore`instance and prepare it for working using `AndroidKeyStore` provider:
-
-```kotlin
-val keyStore = KeyStore.getInstance("AndroidKeyStore")
-keyStore.load(null)
-```
-
-- Get information about keys currently existed in keystore:
-
-```kotlin
-// Define data class to store key info
-data class KeyData(val alias: String, val creationDate: Date)
-val keyData = keyStore.aliases().toList().map { KeyData(it, keyStore.getCreationDate(it)) }
-```
-
-- Prepare `KeyGenerator` instance for generating and saving `AES` symmetric keys using `AndroidKeyStore` provider:
-
-```kotlin
-val generator = KeyGenerator.getInstance(algorithm, "AndroidKeyStore")
-
-
-val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                .setUserAuthenticationRequired(userAuthenticationRequired)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                .setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
-
-generator?.init(builder.build())
-
-// This will create and save key to KeyStore
-val key = keyGenerator?.generateKey()
-```
-
-- Prepare `KeyPairGenerator` instance for generating and saving `RSA` asymmetric key pairs using `AndroidKeyStore` provider:
-
-```kotlin
-val generator = KeyPairGenerator.getInstance(keyProps.mKeyType, provider);
-
-val startDate = Calendar.getInstance()
-val endDate = Calendar.getInstance()
-endDate.add(Calendar.YEAR, 20)
-
-val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setCertificateSerialNumber(BigInteger.ONE)
-                .setCertificateSubject(X500Principal("CN=${alias} CA Certificate"))
-                .setCertificateNotBefore(startDate.time)
-                .setCertificateNotAfter(endDate.time)
-                .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-
-generator.initialize(generator.build())
-
-// This will create and save key to KeyStore
-val keyPair = generator?.generateKeyPair()
-```
+Check out some [general code snippets](/pages/code-snippets.md).
 
 ## Resources
 

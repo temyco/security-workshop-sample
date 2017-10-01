@@ -38,7 +38,7 @@ To be able to build this project on your local machine, please follow the below 
 
 ## Workshop Guide
 
-Project structure was specially designed for workshops. Check the [Workshop page]() to try encryption in action, learn how to work
+Project structure was specially designed for workshops. Check the [Workshop page](/pages/workshop.md) to try encryption in action, learn how to work
 with it on Android, cover compatibility issues, try fingerprint and confirm credentials APIs in a way of gradually completing 
 workshop stages, like in video game.
 

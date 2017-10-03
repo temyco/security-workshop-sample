@@ -10,7 +10,6 @@ class EncryptionServices(context: Context) {
 
     companion object {
         val MASTER_KEY = "MASTER_KEY"
-
     }
 
     private val keyStoreWrapper = KeyStoreWrapper(context)

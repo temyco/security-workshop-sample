@@ -6,7 +6,7 @@ import javax.crypto.Cipher
 /**
  * This class wraps [Cipher] class apis with some additional possibilities.
  */
-class CipherWrapper(val transformation: String) {
+class CipherWrapper() {
 
 }
 

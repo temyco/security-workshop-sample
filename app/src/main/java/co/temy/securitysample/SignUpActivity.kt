@@ -77,10 +77,10 @@ class SignUpActivity : BaseSecureActivity() {
         if (cancel) {
             focusView?.requestFocus()
         } else {
-            createKeys(allowFingerprintView.isChecked)
+            createKeys(passwordString, allowFingerprintView.isChecked)
 
             with(Storage(this)) {
-                savePassword(EncryptionServices(applicationContext).encrypt(passwordString))
+                savePassword(EncryptionServices(applicationContext).encrypt(passwordString, passwordString))
                 saveFingerprintAllowed(allowFingerprintView.isChecked)
             }
 
@@ -92,9 +92,9 @@ class SignUpActivity : BaseSecureActivity() {
     /**
      * Create master, fingerprint and confirm credentials keys.
      */
-    private fun createKeys(isFingerprintAllowed: Boolean) {
+    private fun createKeys(password: String, isFingerprintAllowed: Boolean) {
         val encryptionService = EncryptionServices(applicationContext)
-        encryptionService.createMasterKey()
+        encryptionService.createMasterKey(password)
 
         if (SystemServices.hasMarshmallow()) {
             if (isFingerprintAllowed && systemServices.hasEnrolledFingerprints()) {

@@ -7,9 +7,10 @@ import co.temy.securitysample.SecretActivity
 import co.temy.securitysample.SignUpActivity
 import co.temy.securitysample.Storage
 
-fun Activity.startSecretActivity(requestCode: Int, mode: Int = SecretActivity.MODE_CREATE, secretData: Storage.SecretData? = null) {
+fun Activity.startSecretActivity(requestCode: Int, mode: Int = SecretActivity.MODE_CREATE, password: String? = null, secretData: Storage.SecretData? = null) {
     val intent = Intent(this, SecretActivity::class.java)
     intent.putExtra("mode", mode)
+    password.let { intent.putExtra("password", password) }
     secretData.let { intent.putExtra("secret", secretData) }
     startActivityForResult(intent, requestCode)
 }

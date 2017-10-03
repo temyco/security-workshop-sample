@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.dialog_fingerprint_content.*
 class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprint.Callback {
 
     var passwordVerificationListener: ((password: String) -> Boolean)? = null
-    var authenticationSuccessListener: (() -> Unit)? = null
+    var authenticationSuccessListener: ((password: String) -> Unit)? = null
 
     var fingerprintAuthenticationSuccessListener: ((cryptoObject: FingerprintManager.CryptoObject) -> Unit)? = null
     var fingerprintInvalidationListener: ((invalidatedByBiometricEnrollment: Boolean) -> Unit)? = null
@@ -165,7 +165,7 @@ class AuthenticationDialog : AppCompatDialogFragment(), AuthenticationFingerprin
             fingerprintInvalidationListener?.invoke(useFingerprintInFutureView.isChecked)
         }
         passwordView.setText("")
-        authenticationSuccessListener?.invoke()
+        authenticationSuccessListener?.invoke(password)
         dismiss()
     }
 

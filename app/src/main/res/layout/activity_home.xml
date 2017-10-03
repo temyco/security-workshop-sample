@@ -31,7 +31,7 @@
             android:src="@drawable/ic_add_white"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/addPasswordView" app:fabSize="normal" app:layout_constraintEnd_toEndOf="parent"
+            android:id="@+id/addSecretView" app:fabSize="normal" app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginBottom="0dp" app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="0dp"/>
 

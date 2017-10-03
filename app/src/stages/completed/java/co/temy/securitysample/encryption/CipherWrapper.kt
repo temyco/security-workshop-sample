@@ -1,4 +1,4 @@
-package co.temy.securitysample.encryption
+package java.co.temy.securitysample.encryption
 
 import android.util.Base64
 import java.security.Key
@@ -6,7 +6,7 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 
 /**
- * This class wraps default [Cipher] class apis with some additional possibilities.
+ * This class wraps [Cipher] apis with some additional possibilities.
  *
  * @throws RuntimeException if there is no algorithm defined with [transformation]
  * @throws RuntimeException if there is no padding defined with [transformation]

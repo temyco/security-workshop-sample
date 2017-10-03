@@ -1,4 +1,4 @@
-package co.temy.securitysample.encryption
+package java.co.temy.securitysample.encryption
 
 import android.annotation.TargetApi
 import android.content.Context
@@ -7,29 +7,39 @@ import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import co.temy.securitysample.authentication.SystemServices
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.math.BigInteger
-import java.security.KeyPair
-import java.security.KeyPairGenerator
-import java.security.KeyStore
-import java.security.PrivateKey
+import java.security.*
 import java.util.*
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.security.auth.x500.X500Principal
 
-class KeyStoreWrapper(private val context: Context) {
+/**
+ * This class wraps [KeyStore] class apis with some additional possibilities.
+ */
+class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String) {
 
-    private val keyStore: KeyStore
+    private val keyStore: KeyStore = createAndroidKeyStore()
 
-    init {
-        keyStore = createAndroidKeyStore()
-    }
+    private val defaultKeyStoreFile = File(context.filesDir, defaultKeyStoreName)
+    private val defaultKeyStore = createDefaultKeyStore()
 
     fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 
+    fun getDefaultKeyStoreSymmetricKey(alias: String, keyPassword: String): SecretKey? {
+        return try {
+            defaultKeyStore.getKey(alias, keyPassword.toCharArray()) as SecretKey
+        } catch (e: UnrecoverableKeyException) {
+            null
+        }
+    }
+
     fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
         val privateKey = keyStore.getKey(alias, null) as PrivateKey?
-        val publicKey = keyStore.getCertificate(alias).publicKey
+        val publicKey = keyStore.getCertificate(alias)?.publicKey
 
         return if (privateKey != null && publicKey != null) {
             KeyPair(publicKey, privateKey)
@@ -39,48 +49,42 @@ class KeyStoreWrapper(private val context: Context) {
     }
 
     fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
-    /**
-     * Generates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] using default provider.
-     */
+
+    fun createDefaultKeyStoreSymmetricKey(alias: String, password: String) {
+        val key = generateDefaultSymmetricKey()
+        val keyEntry = KeyStore.SecretKeyEntry(key)
+
+        defaultKeyStore.setEntry(alias, keyEntry, KeyStore.PasswordProtection(password.toCharArray()))
+        defaultKeyStore.store(FileOutputStream(defaultKeyStoreFile), password.toCharArray())
+    }
+
     fun generateDefaultSymmetricKey(): SecretKey {
         val keyGenerator = KeyGenerator.getInstance("AES")
         return keyGenerator.generateKey()
     }
 
-    /**
-     * Creates symmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
-     */
     @TargetApi(Build.VERSION_CODES.M)
     fun createAndroidKeyStoreSymmetricKey(
             alias: String,
             userAuthenticationRequired: Boolean = false,
             invalidatedByBiometricEnrollment: Boolean = true,
             userAuthenticationValidityDurationSeconds: Int = -1,
-            userAuthenticationValidWhileOnBody: Boolean = true): SecretKey? {
+            userAuthenticationValidWhileOnBody: Boolean = true): SecretKey {
 
         val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                // Require the user to authenticate with a fingerprint to authorize every use of the key
                 .setUserAuthenticationRequired(userAuthenticationRequired)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                 .setUserAuthenticationValidityDurationSeconds(userAuthenticationValidityDurationSeconds)
-        // Not working on api 23, try higher ?
-        //.setRandomizedEncryptionRequired(false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
             builder.setUserAuthenticationValidWhileOnBody(userAuthenticationValidWhileOnBody)
         }
-        keyGenerator?.init(builder.build())
-        return keyGenerator?.generateKey()
+        keyGenerator.init(builder.build())
+        return keyGenerator.generateKey()
     }
 
-    /**
-     * Creates asymmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
-     */
     @TargetApi(Build.VERSION_CODES.M)
     fun createAndroidKeyStoreAsymmetricKey(alias: String): KeyPair {
         val generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
@@ -130,5 +134,17 @@ class KeyStoreWrapper(private val context: Context) {
         keyStore.load(null)
         return keyStore
     }
+
+    private fun createDefaultKeyStore(): KeyStore {
+        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+
+        if (!defaultKeyStoreFile.exists()) {
+            keyStore.load(null)
+        } else {
+            keyStore.load(FileInputStream(defaultKeyStoreFile), null)
+        }
+        return keyStore
+    }
+
 }
 

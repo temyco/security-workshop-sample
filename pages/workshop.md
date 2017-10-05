@@ -81,7 +81,7 @@ we will use Asymmetric Keys, but still, what algorithm to chose? Lets search for
 
 ![](/assets/workshop-9.png)
 
-`RSA` - the only one algorithm we can use for Asymmetric Keys till API 23.
+`RSA` - the only one algorithm we can use for Asymmetric Keys.
 
 #### KeyStoreWrapper
 
@@ -287,8 +287,169 @@ fun decrypt(data: String, keyPassword: String? = null): String {
 }
 ```
 
-Ignore `keyPassword` parameter for now, we will get back to it later on during the workshop. Just run
-a project and check the results. 
+Ignore `keyPassword` parameter for now, we will get back to it later on. Just run a project and check the results. 
 
 ### Encryption Stage - Level 2
+
+Before we continue, please try to save Large Secret (more then 250 symbols). Oops, 'IllegalBlockSizeException'. Unfortunately
+`RSA` keys was desired to work with small amount of data. Message length depends on the key size, the bigger key is,
+the bigger message can be encrypted. Be aware that using big key size will increase encryption time and may affect 
+application performance.
+
+Our great plan was ruined. And now we are in bad situation, we cannot use asymmetric key, and symmetric is available only
+from API 23+. To escape it we can choose on of two paths:
+
+1. Create symmetric key with default Java Provider. Encrypt / decrypt password and Secrets with it. Encrypt this key raw data
+with our `RSA` public key and save it somewhere to the disk. Then when we need to decrypt something, get encrypted key data,
+decrypt it with `RSA` private key and use it for data decryption.
+
+2. Separate large message on parts and encrypt / decrypt each of the part individually.
+
+Second option looks easier in implementation, but again, `RSA` is not desired for tasks like this. It will be more
+secure to continue with first option.
+
+#### KeyStoreWrapper
+
+And will start from default provider symmetric key generation. Open `KeyStoreWrapper` class and add `generateDefaultSymmetricKey`
+function, that creates symmetric `AES` key instance for default Java Provider:
+
+```kotlin
+fun generateDefaultSymmetricKey(): SecretKey {
+    val keyGenerator = KeyGenerator.getInstance("AES")
+    return keyGenerator.generateKey()
+}
+```
+
+Add `createAndroidKeyStoreSymmetricKey`, that creates symmetric `AES` key instance for `AndroidKeyStore` and will be 
+in Android API 23+:
+
+```kotlin
+@TargetApi(23)
+fun createAndroidKeyStoreSymmetricKey(alias: String): SecretKey {
+    val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+    val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+    keyGenerator.init(builder.build())
+    return keyGenerator.generateKey()
+}
+```
+
+#### CipherWrapper
+
+Now when lets protect a key. Please open `CipherWrapper` class and add `wrapKey` function, that encrypts one key with another:
+
+```kotlin
+fun wrapKey(keyToBeWrapped: Key, keyToWrapWith: Key?): String {
+    cipher.init(Cipher.WRAP_MODE, keyToWrapWith)
+    val decodedData = cipher.wrap(keyToBeWrapped)
+    return Base64.encodeToString(decodedData, Base64.DEFAULT)
+}
+```
+
+Add `unWrapKey` function, that decrypts a key using another one:
+
+```kotlin
+fun unWrapKey(wrappedKeyData: String, algorithm: String, wrappedKeyType: Int, keyToUnWrapWith: Key?): Key {
+    val encryptedKeyData = Base64.decode(wrappedKeyData, Base64.DEFAULT)
+    cipher.init(Cipher.UNWRAP_MODE, keyToUnWrapWith)
+    return cipher.unwrap(encryptedKeyData, algorithm, wrappedKeyType)
+}
+```
+
+Add `TRANSFORMATION_SYMMETRIC` constant, that will be used for our symmetric keys:
+
+```kotlin
+companion object {
+    var TRANSFORMATION_SYMMETRIC = "AES/CBC/PKCS7Padding"
+}
+```
+
+#### EncryptionServices
+
+Add `storage` field, that is a simple `SharedPreferences` wrapper. We will store encrypted key there:
+
+```kotlin
+private val storage = Storage(context)
+```
+
+Update `createMasterKey` function:
+
+```kotlin
+fun createMasterKey(keyPassword: String? = null) {
+    if (SystemServices.hasMarshmallow()) {
+        createAndroidSymmetricKey()
+    } else {
+        createDefaultSymmetricKey()
+    }
+}
+```
+
+Add `createAndroidSymmetricKey` function:
+
+```kotlin
+private fun createAndroidSymmetricKey() {
+    keyStoreWrapper.createAndroidKeyStoreSymmetricKey(MASTER_KEY)
+}
+```
+
+Add `createDefaultSymmetricKey` function:
+
+```kotlin
+private fun createDefaultSymmetricKey() {
+    val symmetricKey = keyStoreWrapper.generateDefaultSymmetricKey()
+    val masterKey = keyStoreWrapper.createAndroidKeyStoreAsymmetricKey(MASTER_KEY)
+    val encryptedSymmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).wrapKey(symmetricKey, masterKey.public)
+    storage.saveEncryptionKey(encryptedSymmetricKey)
+}
+```
+
+Update `encrypt` and `decrypt` functions:
+
+```kotlin
+fun encrypt(data: String, keyPassword: String? = null): String {
+    return if (SystemServices.hasMarshmallow()) {
+        encryptWithAndroidSymmetricKey(data)
+    } else {
+        encryptWithDefaultSymmetricKey(data)
+    }
+}
+
+fun decrypt(data: String, keyPassword: String? = null): String {
+    return if (SystemServices.hasMarshmallow()) {
+        decryptWithAndroidSymmetricKey(data)
+    } else {
+        decryptWithDefaultSymmetricKey(data)
+    }
+}
+
+private fun encryptWithAndroidSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(MASTER_KEY)
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).encrypt(data, masterKey)
+}
+
+private fun decryptWithAndroidSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(MASTER_KEY)
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, masterKey)
+}
+
+private fun encryptWithDefaultSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreAsymmetricKeyPair(MASTER_KEY)
+    val encryptionKey = storage.getEncryptionKey()
+    val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey?.private) as SecretKey
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).encrypt(data, symmetricKey)
+}
+
+private fun decryptWithDefaultSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreAsymmetricKeyPair(MASTER_KEY)
+    val encryptionKey = storage.getEncryptionKey()
+    val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey?.private) as SecretKey
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, symmetricKey)
+}
+```
+
+#### Encryption Stage - Level 3
+
+Lets check the results before we move on. Please run our sample. And another Oops here, `InvalidKeyException:
+IV required when decrypting. Use IvParameterSpec or AlgorithmParameters to provide it` 
 

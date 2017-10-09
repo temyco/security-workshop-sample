@@ -320,7 +320,7 @@ fun generateDefaultSymmetricKey(): SecretKey {
 }
 ```
 
-Add `createAndroidKeyStoreSymmetricKey`, that creates symmetric `AES` key instance for `AndroidKeyStore` and will be 
+Add `createAndroidKeyStoreSymmetricKey`, that creates symmetric `AES` key instance for `AndroidKeyStore` and will be used
 in Android API 23+:
 
 ```kotlin
@@ -448,8 +448,33 @@ private fun decryptWithDefaultSymmetricKey(data: String): String {
 }
 ```
 
-#### Encryption Stage - Level 3
+### Encryption Stage - Level 3
 
 Lets check the results before we move on. Please run our sample. And another Oops here, `InvalidKeyException:
-IV required when decrypting. Use IvParameterSpec or AlgorithmParameters to provide it` 
+IV required when decrypting. Use IvParameterSpec or AlgorithmParameters to provide it`.
+
+Explanation about IV here.
+
+#### CipherWrapper
+ 
+Update `encrypt` function:
+ 
+```kotlin
+fun encrypt(data: String, key: Key?, useInitializationVector: Boolean = false): String {
+    cipher.init(Cipher.ENCRYPT_MODE, key)
+    
+    var result = ""
+    if (useInitializationVector) {
+        val iv = cipher.iv
+        val ivString = Base64.encodeToString(iv, Base64.DEFAULT)
+        result = ivString + IV_SEPARATOR
+    }
+    val bytes = cipher.doFinal(data.toByteArray())
+    result += Base64.encodeToString(bytes, Base64.DEFAULT)
+    
+    return result
+}
+```
+
+
 

@@ -109,12 +109,12 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
     }
 
     /**
-     * Creates asymmetric [KeyProperties.KEY_ALGORITHM_AES] key with default [KeyProperties.BLOCK_MODE_CBC] and
-     * [KeyProperties.ENCRYPTION_PADDING_PKCS7] and saves it to Android Key Store.
+     * Creates asymmetric RSA key with default [KeyProperties.BLOCK_MODE_ECB] and
+     * [KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1] and saves it to Android Key Store.
      */
     @TargetApi(Build.VERSION_CODES.M)
     fun createAndroidKeyStoreAsymmetricKey(alias: String): KeyPair {
-        val generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
+        val generator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
 
         if (SystemServices.hasMarshmallow()) {
             initGeneratorWithKeyGenParameterSpec(generator, alias)
@@ -142,15 +142,7 @@ class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
 
     @TargetApi(Build.VERSION_CODES.M)
     private fun initGeneratorWithKeyGenParameterSpec(generator: KeyPairGenerator, alias: String) {
-        val startDate = Calendar.getInstance()
-        val endDate = Calendar.getInstance()
-        endDate.add(Calendar.YEAR, 20)
-
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setCertificateSerialNumber(BigInteger.ONE)
-                .setCertificateSubject(X500Principal("CN=${alias} CA Certificate"))
-                .setCertificateNotBefore(startDate.time)
-                .setCertificateNotAfter(endDate.time)
                 .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
         generator.initialize(builder.build())

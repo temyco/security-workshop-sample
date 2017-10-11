@@ -5,7 +5,6 @@ import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.UserNotAuthenticatedException
-import co.temy.securitysample.Storage
 import java.co.temy.securitysample.encryption.CipherWrapper
 import java.co.temy.securitysample.encryption.KeyStoreWrapper
 import java.security.InvalidKeyException
@@ -28,9 +27,7 @@ class EncryptionServices(context: Context) {
         val CONFIRM_CREDENTIALS_VALIDATION_DELAY = 0 // Seconds
     }
 
-    private val storage = Storage(context)
     private val keyStoreWrapper = KeyStoreWrapper(context, DEFAULT_KEY_STORE_NAME)
-
 
     /*
      * Encryption Stage
@@ -138,7 +135,7 @@ class EncryptionServices(context: Context) {
                 cipher.init(Cipher.ENCRYPT_MODE, symmetricKey)
                 FingerprintManager.CryptoObject(cipher)
             } catch (e: Throwable) {
-                // VerifyError is will be thrown on API lower then 23 if we will use unedited
+                // VerifyError will be thrown on API lower then 23 if we will use unedited
                 // class reference directly in catch block
                 if (e is KeyPermanentlyInvalidatedException || e is IllegalBlockSizeException) {
                     return null

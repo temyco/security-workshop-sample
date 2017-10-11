@@ -53,8 +53,10 @@ class KeyStoreWrapper(private val context: Context) {
         return keyGenerator.generateKey()
     }
 
+    fun removeAndroidKeyStoreKey(alias: String) = keyStore.deleteEntry(alias)
+
     fun createAndroidKeyStoreAsymmetricKey(alias: String): KeyPair {
-        val generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
+        val generator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
 
         if (SystemServices.hasMarshmallow()) {
             initGeneratorWithKeyGenParameterSpec(generator, alias)
@@ -87,15 +89,7 @@ class KeyStoreWrapper(private val context: Context) {
 
     @TargetApi(Build.VERSION_CODES.M)
     private fun initGeneratorWithKeyGenParameterSpec(generator: KeyPairGenerator, alias: String) {
-        val startDate = Calendar.getInstance()
-        val endDate = Calendar.getInstance()
-        endDate.add(Calendar.YEAR, 20)
-
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setCertificateSerialNumber(BigInteger.ONE)
-                .setCertificateSubject(X500Principal("CN=${alias} CA Certificate"))
-                .setCertificateNotBefore(startDate.time)
-                .setCertificateNotAfter(endDate.time)
                 .setBlockModes(KeyProperties.BLOCK_MODE_ECB)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
         generator.initialize(builder.build())

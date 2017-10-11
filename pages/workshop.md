@@ -4,7 +4,7 @@ Link for presentation with all functions descriptions will be placed here.
 
 ## Project Structure
 
-Project is separated on different Stages using gradle flavors. Stage represents some task, that need to be completed. 
+Project is separated on different Stages using gradle flavors. Stage represents some task, that need to be completed.
 Stage can have subtasks - levels.
 
 ![](/assets/workshop-1.png)
@@ -130,7 +130,7 @@ private fun initGeneratorWithKeyGenParameterSpec(generator: KeyPairGenerator, al
     val startDate = Calendar.getInstance()
     val endDate = Calendar.getInstance()
     endDate.add(Calendar.YEAR, 20)
-    
+
     val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setCertificateSerialNumber(BigInteger.ONE)
             .setCertificateSubject(X500Principal("CN=${alias} CA Certificate"))
@@ -169,7 +169,7 @@ key with given alias:
 fun getAndroidKeyStoreAsymmetricKeyPair(alias: String): KeyPair? {
        val privateKey = keyStore.getKey(alias, null) as PrivateKey?
        val publicKey = keyStore.getCertificate(alias)?.publicKey
-       
+
    return if (privateKey != null && publicKey != null) {
        KeyPair(publicKey, privateKey)
    } else {
@@ -236,11 +236,11 @@ fun decrypt(data: String, key: Key?): String {
 Now, having all puzzle part, lets put them together. Lets create user Master Key and encrypt, decrypt password and Secrets
 with it.
 
-Please open`EncryptionServices` class. It is a main interface of predefined functions that we are going to modify 
+Please open`EncryptionServices` class. It is a main interface of predefined functions that we are going to modify
 during the workshop.
 
 Add `keyStoreWrapper` field:
- 
+
 ```kotlin
 private val keyStoreWrapper = KeyStoreWrapper(context)
 ```
@@ -287,13 +287,13 @@ fun decrypt(data: String, keyPassword: String? = null): String {
 }
 ```
 
-Ignore `keyPassword` parameter for now, we will get back to it later on. Just run a project and check the results. 
+Ignore `keyPassword` parameter for now, we will get back to it later on. Just run a project and check the results.
 
 ### Encryption Stage - Level 2
 
 Before we continue, please try to save Large Secret (more then 250 symbols). Oops, 'IllegalBlockSizeException'. Unfortunately
 `RSA` keys was desired to work with small amount of data. Message length depends on the key size, the bigger key is,
-the bigger message can be encrypted. Be aware that using big key size will increase encryption time and may affect 
+the bigger message can be encrypted. Be aware that using big key size will increase encryption time and may affect
 application performance.
 
 Our great plan was ruined. And now we are in bad situation, we cannot use asymmetric key, and symmetric is available only
@@ -453,16 +453,20 @@ private fun decryptWithDefaultSymmetricKey(data: String): String {
 Lets check the results before we move on. Please run our sample. And another Oops here, `InvalidKeyException:
 IV required when decrypting. Use IvParameterSpec or AlgorithmParameters to provide it`.
 
-Explanation about IV here.
+Initialization Vector is a fixed-size input to a cryptographic primitive. It is typically required to be random or pseudorandom.
+The point of an IV is to tolerate the use of the same key to encrypt several distinct messages.
+
+And it is required to be used with block algorithm modes, like `CBC` in `AES` algorithm. Lets implement it.
 
 #### CipherWrapper
- 
-Update `encrypt` function:
- 
+
+Open `CipherWrapper` class and update `encrypt` function, that gets system automatically generated Initialization Vector
+and adds it to the encryption result as a prefix:
+
 ```kotlin
 fun encrypt(data: String, key: Key?, useInitializationVector: Boolean = false): String {
     cipher.init(Cipher.ENCRYPT_MODE, key)
-    
+
     var result = ""
     if (useInitializationVector) {
         val iv = cipher.iv
@@ -471,10 +475,321 @@ fun encrypt(data: String, key: Key?, useInitializationVector: Boolean = false): 
     }
     val bytes = cipher.doFinal(data.toByteArray())
     result += Base64.encodeToString(bytes, Base64.DEFAULT)
-    
+
     return result
 }
 ```
 
+Update `decrypt` function, that parses result text from encrypt method and uses IV in decryption:
 
+```kotlin
+fun decrypt(data: String, key: Key?, useInitializationVector: Boolean = false): String {
+    var encodedString: String
+
+    if (useInitializationVector) {
+        val split = data.split(IV_SEPARATOR.toRegex())
+        if (split.size != 2) throw IllegalArgumentException("Passed data is incorrect. There was no IV specified with it.")
+
+        val ivString = split[0]
+        encodedString = split[1]
+        val ivSpec = IvParameterSpec(Base64.decode(ivString, Base64.DEFAULT))
+        cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
+    } else {
+        encodedString = data
+        cipher.init(Cipher.DECRYPT_MODE, key)
+    }
+
+    val encryptedData = Base64.decode(encodedString, Base64.DEFAULT)
+    val decodedData = cipher.doFinal(encryptedData)
+    return String(decodedData)
+}
+```
+
+#### EncryptionServices
+
+Open `EncryptionServices` class and update all functions where symmetric key is used.
+
+Update `encryptWithAndroidSymmetricKey` and `decryptWithAndroidSymmetricKey` functions:
+
+```kotlin
+private fun encryptWithAndroidSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(MASTER_KEY)
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).encrypt(data, masterKey, true)
+}
+
+private fun decryptWithAndroidSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(MASTER_KEY)
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, masterKey, true)
+}
+```
+
+Update `encryptWithDefaultSymmetricKey` and `decryptWithDefaultSymmetricKey` functions:
+
+```kotlin
+private fun encryptWithDefaultSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreAsymmetricKeyPair(MASTER_KEY)
+    val encryptionKey = storage.getEncryptionKey()
+    val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey?.private) as SecretKey
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).encrypt(data, symmetricKey, true)
+}
+
+private fun decryptWithDefaultSymmetricKey(data: String): String {
+    val masterKey = keyStoreWrapper.getAndroidKeyStoreAsymmetricKeyPair(MASTER_KEY)
+    val encryptionKey = storage.getEncryptionKey()
+    val symmetricKey = CipherWrapper(CipherWrapper.TRANSFORMATION_ASYMMETRIC).unWrapKey(encryptionKey, ALGORITHM_AES, Cipher.SECRET_KEY, masterKey?.private) as SecretKey
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, symmetricKey, true)
+}
+```
+
+Run the results, now everything should be ok.
+
+### Encryption Stage - Level 4
+
+
+
+#### KeyStoreWrapper
+
+Add `defaultKeyStoreName` parameter to constructor:
+
+```kotlin
+class KeyStoreWrapper(private val context: Context, defaultKeyStoreName: String)
+```
+
+Add `defaultKeyStoreFile` field, that points to default keystore location on the disk:
+
+```kotlin
+private val defaultKeyStoreFile = File(context.filesDir, defaultKeyStoreName)
+```
+
+Add `defaultKeyStore` field and `createDefaultKeyStore` function, that initializes new default provider keystore or loads it from file:
+
+```kotlin
+private val defaultKeyStore = createDefaultKeyStore()
+
+private fun createDefaultKeyStore(): KeyStore {
+    val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+
+    if (!defaultKeyStoreFile.exists()) {
+        keyStore.load(null)
+    } else {
+        keyStore.load(FileInputStream(defaultKeyStoreFile), null)
+    }
+    return keyStore
+}
+```
+
+Add `createDefaultKeyStoreSymmetricKey` function, that generates symmetric key and stores it in keystore with given alias and
+password:
+
+```kotlin
+fun createDefaultKeyStoreSymmetricKey(alias: String, password: String) {
+    val key = generateDefaultSymmetricKey()
+    val keyEntry = KeyStore.SecretKeyEntry(key)
+
+    defaultKeyStore.setEntry(alias, keyEntry, KeyStore.PasswordProtection(password.toCharArray()))
+    defaultKeyStore.store(FileOutputStream(defaultKeyStoreFile), password.toCharArray())
+}
+```
+
+Add `getDefaultKeyStoreSymmetricKey` function, that gets Symmetric key from default keystore:
+
+```kotlin
+fun getDefaultKeyStoreSymmetricKey(alias: String, keyPassword: String): SecretKey? {
+    return try {
+        defaultKeyStore.getKey(alias, keyPassword.toCharArray()) as SecretKey
+    } catch (e: UnrecoverableKeyException) {
+        null
+    }
+}
+```
+
+#### EncryptionServices
+
+Open `EncryptionServices` and apply our changes so that only one symmetric key from default keystore will be used, instead
+off wrapping symmetric key with RSA key from Android Key Store.
+
+Update `createDefaultSymmetricKey` function:
+
+```kotlin
+private fun createDefaultSymmetricKey(password: String) {
+    keyStoreWrapper.createDefaultKeyStoreSymmetricKey(MASTER_KEY, password)
+}
+```
+
+Update `encryptWithDefaultSymmetricKey` and `decryptWithDefaultSymmetricKey` functions:
+
+```kotlin
+private fun encryptWithDefaultSymmetricKey(data: String, keyPassword: String): String {
+    val masterKey = keyStoreWrapper.getDefaultKeyStoreSymmetricKey(MASTER_KEY, keyPassword)
+    return CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).encrypt(data, masterKey, true)
+}
+
+private fun decryptWithDefaultSymmetricKey(data: String, keyPassword: String): String {
+    val masterKey = keyStoreWrapper.getDefaultKeyStoreSymmetricKey(MASTER_KEY, keyPassword)
+    return masterKey?.let { CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).decrypt(data, masterKey, true) } ?: ""
+}
+```
+
+Run application on both 18 and 23 AVDs and validate that everything is working as desired.
+
+### Fingerprint Stage
+
+In most cases fingerprint is used as optional authentication. It is tied to `AndroidKeyStore` and requires to create
+Fingerprint cryptographic Key. Those keys gets invalidated when new fingerprint is added or any one of existed is removed.
+
+There is issue with emulator AVD 24 API - fingerprint key doesn't get invalidated when new fingerprints are enrolled (or
+old removed). This also is valid for real devices, Samsung S6 running on API 24 has the same issue.
+
+There is another system service responsible for fingerprint management called `FingerprintManager`, available
+from API 23. Please open `SystemServices` class and lets see how it works.
+
+```kotlin
+/**
+ * There is a nice [FingerprintManagerCompat] class that makes all dirty work for us, but as always, shit happens.
+ * Behind the scenes it is using `Context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)`
+ * method, that is returning false on 23 API emulators, when in fact [FingerprintManager] is there and is working fine.
+ */
+private var fingerprintManager: FingerprintManager? = null
+
+init {
+    if (hasMarshmallow()) {
+        fingerprintManager = context.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager
+    }
+}
+
+// Check if fingerprint hardware is available on device
+fun isFingerprintHardwareAvailable() = fingerprintManager?.isHardwareDetected ?: false
+
+// Check if there are fingerprints added
+fun hasEnrolledFingerprints() = fingerprintManager?.hasEnrolledFingerprints() ?: false
+
+// Warm up the fingerprint hardware and starts scanning for a fingerprint
+fun authenticateFingerprint(cryptoObject: FingerprintManager.CryptoObject, cancellationSignal: CancellationSignal, flags: Int, callback: FingerprintManager.AuthenticationCallback, handler: Handler?) {
+    fingerprintManager?.authenticate(cryptoObject, cancellationSignal, flags, callback, handler)
+}
+```
+
+`FingerprintManager.AuthenticationCallback` is already implemented in `AuthenticationFingerprint` class, please open it.
+This class is updating user with authentication results and in case of success, passing us back initialized `CryptoObject`.
+Lets check it out:
+
+```kotlin
+fun startListening(cryptoObject: FingerprintManager.CryptoObject) {
+    // Start fingerprint authentication
+}
+
+fun stopListening() {
+    // Cancel fingerprint authentication
+}
+
+private val fingerprintCallback = object : FingerprintManager.AuthenticationCallback() {
+    override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
+        // To many tries was made, show error text and change view, so user will be able to enter his password
+    }
+
+    override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
+        // Fingerprint was not recognized, show error with help text and let him try again after some delay
+    }
+
+    override fun onAuthenticationFailed() {
+        // Fingerprint was not recognized, show error to user and let him try again after some delay
+    }
+
+    @TargetApi(23)
+    override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
+        // Update user with success result and initialized CryptoObject
+    }
+}
+```
+
+#### KeyStoreWrapper
+
+First of all we need to create fingerprint cryptographic key. Open `KeyStoreWrapper` class and update `createAndroidKeyStoreSymmetricKey`
+function:
+
+```kotlin
+@TargetApi(Build.VERSION_CODES.M)
+fun createAndroidKeyStoreSymmetricKey(
+        alias: String,
+        userAuthenticationRequired: Boolean = false,
+        invalidatedByBiometricEnrollment: Boolean = true): SecretKey {
+
+    val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+    val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+            .setUserAuthenticationRequired(userAuthenticationRequired)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
+    }
+    keyGenerator.init(builder.build())
+    return keyGenerator.generateKey()
+}
+```
+
+#### EncryptionServices
+
+Then open `EncryptionServices` class and:
+
+Update `createFingerprintKey` and `removeFingerprintKey` functions:
+
+```kotlin
+fun createFingerprintKey() {
+    if (SystemServices.hasMarshmallow()) {
+        keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY, true, true)
+    }
+}
+
+fun removeFingerprintKey() {
+    if (SystemServices.hasMarshmallow()) {
+        keyStoreWrapper.removeAndroidKeyStoreKey(FINGERPRINT_KEY)
+    }
+}
+```
+
+Update `prepareFingerprintCryptoObject` function:
+
+```kotlin
+fun prepareFingerprintCryptoObject(): FingerprintManager.CryptoObject? {
+    return if (SystemServices.hasMarshmallow()) {
+        try {
+            val symmetricKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY)
+            val cipher = CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC).cipher
+            cipher.init(Cipher.ENCRYPT_MODE, symmetricKey)
+            FingerprintManager.CryptoObject(cipher)
+        } catch (e: Throwable) {
+            // VerifyError is will be thrown on API lower then 23 if we will use unedited
+            // class reference directly in catch block
+            if (e is KeyPermanentlyInvalidatedException || e is IllegalBlockSizeException) {
+                return null
+            } else if (e is InvalidKeyException) {
+                // Fingerprint key was not generated
+                return null
+            }
+            throw e
+        }
+    } else null
+}
+```
+
+Update `validateFingerprintAuthentication` function:
+
+```kotlin
+@TargetApi(23)
+fun validateFingerprintAuthentication(cryptoObject: FingerprintManager.CryptoObject): Boolean {
+    try {
+        cryptoObject.cipher.doFinal(KEY_VALIDATION_DATA)
+        return true
+    } catch (e: Throwable) {
+        if (e is KeyPermanentlyInvalidatedException || e is IllegalBlockSizeException) {
+            return false
+        }
+        throw e
+    }
+}
+```
+
+Run the results and validate that everything is working well.
+
+### Confirm Credentials Stage
 

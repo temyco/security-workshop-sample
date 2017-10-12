@@ -24,7 +24,7 @@ class EncryptionServices(context: Context) {
         val CONFIRM_CREDENTIALS_KEY = "CONFIRM_CREDENTIALS_KEY"
 
         val KEY_VALIDATION_DATA = byteArrayOf(0, 1, 0, 1)
-        val CONFIRM_CREDENTIALS_VALIDATION_DELAY = 0 // Seconds
+        val CONFIRM_CREDENTIALS_VALIDATION_DELAY = 120 // Seconds
     }
 
     private val keyStoreWrapper = KeyStoreWrapper(context, DEFAULT_KEY_STORE_NAME)

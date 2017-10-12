@@ -310,7 +310,7 @@ secure to continue with first option.
 
 #### KeyStoreWrapper
 
-And will start from default provider symmetric key generation. Open `KeyStoreWrapper` class and add `generateDefaultSymmetricKey`
+And we will start from default provider symmetric key generation. Open `KeyStoreWrapper` class and add `generateDefaultSymmetricKey`
 function, that creates symmetric `AES` key instance for default Java Provider:
 
 ```kotlin
@@ -545,7 +545,25 @@ Run the results, now everything should be ok.
 
 ### Encryption Stage - Level 4
 
+There is a nice `KeyPairGeneratorSpec.setEncryptionRequired()` method, that :
 
+>This will protect the key pair with the secure lock screen credential (e.g., password, PIN, or pattern). 
+>
+>Note that this feature requires that the secure lock screen (e.g., password, PIN, pattern) is set up, otherwise
+>key pair generation will fail. Moreover, this key pair will be deleted when the secure lock screen is disabled or
+>reset (e.g., by the user or a Device Administrator).
+
+And there is one issue with it, that is very simple to reproduce, on pre API 23, keys will be removed even if `setEncryptionRequired`
+is not set. 
+
+Just try to change Lock Screen type and all of your AndroidKeyStore keys will gone.
+
+What to do ?
+
+- Android Key Store may be used safely on M devices and later
+- Before M, reload data when keys are invalidated
+- Do not use Android Key Store for local only content 
+- Instead prefer to use default java Provider (or other)
 
 #### KeyStoreWrapper
 
@@ -793,3 +811,113 @@ Run the results and validate that everything is working well.
 
 ### Confirm Credentials Stage
 
+The last step of our Workshop is to ask user for Lock Screen password for Application authentication. Confirm Credentials
+API will help us with this. Like Fingerprint API it is also was added in Android M and is also connected to AndroidKeyStore.
+
+If you thought that Lock Screen equals to `KeyguardManager`, you were absolutely correct. Please open `SystemServices` class 
+and take a look on `showAuthenticationScreen` function implementation:
+
+```kotlin
+fun showAuthenticationScreen(activity: Activity, requestCode: Int, title: String? = null, description: String? = null) {
+    if (hasMarshmallow()) {
+        // Creates intent for launching the activity or null if no password is required(no Lock Screen setup).
+        // It is available from API 21+ and can be used without cryptographic keys (but it will be not possible to
+        // specify user authentication validity duration seconds without it)
+        val intent = keyguardManager.createConfirmDeviceCredentialIntent(title, description)
+        
+        // Start Lock Screen activity with confirm credentials intent and wait for RESULT_OK
+        if (intent != null) {
+            activity.startActivityForResult(intent, requestCode)
+        }
+    }
+}
+```
+
+Now lets create a crypto key that will be authenticated with this intent and implement the authentication validation for it.
+
+#### KeyStoreWrapper
+
+Update `createAndroidKeyStoreSymmetricKey` function, that now will allow us to create key for Confirm Credentials:
+
+```kotlin
+@TargetApi(Build.VERSION_CODES.M)
+fun createAndroidKeyStoreSymmetricKey(
+        alias: String,
+        userAuthenticationRequired: Boolean = false,
+        invalidatedByBiometricEnrollment: Boolean = true,
+        userAuthenticationValidityDurationSeconds: Int = -1,
+        userAuthenticationValidWhileOnBody: Boolean = true): SecretKey {
+
+    val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+    val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+            .setUserAuthenticationRequired(userAuthenticationRequired)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setUserAuthenticationValidityDurationSeconds(userAuthenticationValidityDurationSeconds)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        builder.setInvalidatedByBiometricEnrollment(invalidatedByBiometricEnrollment)
+        builder.setUserAuthenticationValidWhileOnBody(userAuthenticationValidWhileOnBody)
+    }
+    keyGenerator.init(builder.build())
+    return keyGenerator.generateKey()
+}
+```
+
+#### EncryptionServices
+
+Update `createConfirmCredentialsKey` function:
+
+```kotlin
+fun createConfirmCredentialsKey() {
+    if (SystemServices.hasMarshmallow()) {
+        keyStoreWrapper.createAndroidKeyStoreSymmetricKey(
+                CONFIRM_CREDENTIALS_KEY,
+                userAuthenticationRequired = true,
+                userAuthenticationValidityDurationSeconds = CONFIRM_CREDENTIALS_VALIDATION_DELAY)
+    }
+}
+```
+
+Update `removeConfirmCredentialsKey` function:
+
+```kotlin
+fun removeConfirmCredentialsKey() {
+    keyStoreWrapper.removeAndroidKeyStoreKey(CONFIRM_CREDENTIALS_KEY)
+}
+```
+
+Update `validateConfirmCredentialsAuthentication` function:
+
+```kotlin
+fun validateConfirmCredentialsAuthentication(): Boolean {
+    if (!SystemServices.hasMarshmallow()) {
+        return true
+    }
+
+    val symmetricKey = keyStoreWrapper.getAndroidKeyStoreSymmetricKey(CONFIRM_CREDENTIALS_KEY)
+    val cipherWrapper = CipherWrapper(CipherWrapper.TRANSFORMATION_SYMMETRIC)
+
+    try {
+        return if (symmetricKey != null) {
+            cipherWrapper.encrypt(KEY_VALIDATION_DATA.toString(), symmetricKey)
+            true
+        } else false
+    } catch (e: Throwable) {
+        // VerifyError is will be thrown on API lower then 23 if we will use unedited
+        // class reference directly in catch block
+        if (e is UserNotAuthenticatedException || e is KeyPermanentlyInvalidatedException) {
+            // User is not authenticated or the lock screen has been disabled or reset
+            return false
+        } else if (e is InvalidKeyException) {
+            // Confirm Credentials key was not generated
+            return false
+        }
+        throw e
+    }
+}
+```
+That's it, now we can validate key with user Lock Screen password. It's time for testing, please run application on
+AVD 23 and validate that everything is working as expected.
+
+Thanks for going through this workshop. Hope you had some fun and learned something interesting during the session.
+ Keep your data secured! 

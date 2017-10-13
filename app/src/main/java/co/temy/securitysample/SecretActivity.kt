@@ -230,7 +230,10 @@ class SecretActivity : AppCompatActivity() {
     }
 
     private fun createSecretData(alias: String, secret: String, createDate: Date): Storage.SecretData {
-        return Storage.SecretData(alias.capitalize(), encryptSecret(secret), createDate, updateDate = Date())
+        val encryptedSecret = encryptSecret(secret)
+        logi("Original secret is: $secret")
+        logi("Saved secret is: $encryptedSecret")
+        return Storage.SecretData(alias.capitalize(), encryptedSecret, createDate, updateDate = Date())
     }
 
     /**

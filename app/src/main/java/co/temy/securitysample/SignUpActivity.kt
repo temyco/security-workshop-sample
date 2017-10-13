@@ -80,7 +80,11 @@ class SignUpActivity : BaseSecureActivity() {
             createKeys(passwordString, allowFingerprintView.isChecked)
 
             with(Storage(this)) {
-                savePassword(EncryptionServices(applicationContext).encrypt(passwordString, passwordString))
+                val encryptedPassword = EncryptionServices(applicationContext).encrypt(passwordString, passwordString)
+                logi("Original password is: $passwordString")
+                logi("Saved password is: $encryptedPassword")
+
+                savePassword(encryptedPassword)
                 saveFingerprintAllowed(allowFingerprintView.isChecked)
             }
 

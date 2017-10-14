@@ -56,15 +56,25 @@ Check out some [general code snippets](/pages/code-snippets.md).
 
 - http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html
 - https://developer.android.com/training/articles/keystore.html
+- http://developer.android.com/training/articles/keystore.html#SupportedAlgorithms
 - https://source.android.com/security/keystore/
-- https://github.com/yakivmospan/scytale
+- https://www.amazon.com/Android-Security-Internals-In-Depth-Architecture/dp/1593275811
+- http://nelenkov.blogspot.com/
+- https://doridori.github.io/android-security-the-forgetful-keystore/
+- https://www.coursera.org/learn/crypto
 
 ### Fingerprint & Credentials API
 
 - https://developer.android.com/about/versions/marshmallow/android-6.0.html#fingerprint-authentication
 - https://developer.android.com/about/versions/marshmallow/android-6.0.html#confirm-credential
 - https://github.com/googlesamples/android-FingerprintDialog
+- https://github.com/googlesamples/android-ConfirmCredential
 - https://www.youtube.com/watch?v=VOn7VrTRlA4
+
+### Libraries
+
+- https://android-arsenal (Security and Fingerprint tags)
+- https://github.com/yakivmospan/scytale
 
 ### Key Attestation
 

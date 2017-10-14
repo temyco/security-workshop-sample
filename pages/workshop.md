@@ -1,6 +1,6 @@
 # Workshop
 
-Link for presentation with all functions descriptions will be placed here.
+Check out the [presentation link](https://speakerdeck.com/yakivmospan/secure-data-in-android) for even more interesting details.
 
 ## Project Structure
 
@@ -325,6 +325,12 @@ fun createAndroidKeyStoreSymmetricKey(alias: String): SecretKey {
     keyGenerator.init(builder.build())
     return keyGenerator.generateKey()
 }
+```
+
+Add `getAndroidKeyStoreSymmetricKey` function:
+
+```kotlin
+fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(alias, null) as SecretKey?
 ```
 
 #### CipherWrapper

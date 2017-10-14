@@ -2,8 +2,6 @@
 
 Secrets Keeper is a simple secure application that uses Android Key Store API, Fingerprint API and Confirm Credentials API to keep your secrets in safe.
 
-> _**Note.** This project is work in progress. Design, Workflow and end Goals can be changed during development._
-
 ## Requirements
 
 - Support Android 18 + Devices

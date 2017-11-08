@@ -106,7 +106,6 @@ android {
             java.srcDirs = ["src/stages/stage3"]
         }
     }
-    buildToolsVersion '26.0.2'
 }
 
 configurations.all {

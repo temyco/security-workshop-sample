@@ -71,7 +71,7 @@ Check out some [general code snippets](/pages/code-snippets.md).
 
 ### Libraries
 
-- https://android-arsenal (Security and Fingerprint tags)
+- https://android-arsenal.com/ (Security and Fingerprint tags)
 - https://github.com/yakivmospan/scytale
 
 ### Key Attestation

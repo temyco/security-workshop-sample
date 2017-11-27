@@ -111,7 +111,10 @@ class EncryptionServices(context: Context) {
      */
     fun createFingerprintKey() {
         if (SystemServices.hasMarshmallow()) {
-            keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY, true, true)
+            keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY,
+                    userAuthenticationRequired = true,
+                    invalidatedByBiometricEnrollment = true,
+                    userAuthenticationValidWhileOnBody = false)
         }
     }
 

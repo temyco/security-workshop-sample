@@ -752,7 +752,10 @@ Update `createFingerprintKey` and `removeFingerprintKey` functions:
 ```kotlin
 fun createFingerprintKey() {
     if (SystemServices.hasMarshmallow()) {
-        keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY, true, true)
+        keyStoreWrapper.createAndroidKeyStoreSymmetricKey(FINGERPRINT_KEY,
+                        userAuthenticationRequired = true,
+                        invalidatedByBiometricEnrollment = true,
+                        userAuthenticationValidWhileOnBody = false)
     }
 }
 

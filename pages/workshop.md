@@ -1,6 +1,6 @@
 # Workshop
 
-Check out the [presentation link](https://speakerdeck.com/yakivmospan/secure-data-in-android) for even more interesting details.
+Check out the [presentation link](https://speakerdeck.com/yakivmospan/secure-data-in-android) and [article series](https://proandroiddev.com/secure-data-in-android-encryption-7eda33e68f58) for even more interesting details.
 
 ## Project Structure
 

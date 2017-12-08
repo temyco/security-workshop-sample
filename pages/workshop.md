@@ -35,6 +35,8 @@ Classes that we will update during the workshop
 
 If you have lost focus or something just went wrong - select next Stage or Level and continue to work on it.
 
+Note, it is important to reset application data before moving to another stage. You can do this from in application menu or device settings.
+
 ![](/assets/workshop-8.png)
 
 ## Workshop Guide
@@ -300,6 +302,8 @@ decrypt it with `RSA` private key and use it for data decryption.
 Second option looks easier in implementation, but again, `RSA` is not desired for tasks like this. It will be more
 secure to continue with first option.
 
+>_Please, before we continue, reset application data from in app menu or in device settings._
+
 #### KeyStoreWrapper
 
 And we will start from default provider symmetric key generation. Open `KeyStoreWrapper` class and add `generateDefaultSymmetricKey`
@@ -335,7 +339,7 @@ fun getAndroidKeyStoreSymmetricKey(alias: String): SecretKey? = keyStore.getKey(
 
 #### CipherWrapper
 
-Now when lets protect a key. Please open `CipherWrapper` class and add `wrapKey` function, that encrypts one key with another:
+Now, lets protect a key. Please open `CipherWrapper` class and add `wrapKey` function, that encrypts one key with another:
 
 ```kotlin
 fun wrapKey(keyToBeWrapped: Key, keyToWrapWith: Key?): String {
@@ -456,6 +460,8 @@ The point of an IV is to tolerate the use of the same key to encrypt several dis
 
 And it is required to be used with block algorithm modes, like `CBC` in `AES` algorithm. Lets implement it.
 
+>_Please, before we continue, reset application data from in app menu or in device settings._
+
 #### CipherWrapper
 
 Open `CipherWrapper` class and update `encrypt` function, that gets system automatically generated Initialization Vector
@@ -562,6 +568,8 @@ What to do ?
 - Before M, reload data when keys are invalidated
 - Do not use Android Key Store for local only content 
 - Instead prefer to use default java Provider (or other)
+
+>_Please, before we continue, reset application data from in app menu or in device settings._
 
 #### KeyStoreWrapper
 
@@ -718,6 +726,8 @@ private val fingerprintCallback = object : FingerprintManager.AuthenticationCall
 }
 ```
 
+>_Please, before we continue, reset application data from in app menu or in device settings._
+
 #### KeyStoreWrapper
 
 First of all we need to create fingerprint cryptographic key. Open `KeyStoreWrapper` class and update `createAndroidKeyStoreSymmetricKey`
@@ -836,6 +846,8 @@ fun showAuthenticationScreen(activity: Activity, requestCode: Int, title: String
 
 Now lets create a crypto key that will be authenticated with this intent and implement the authentication validation for it.
 
+>_Please, before we continue, reset application data from in app menu or in device settings._
+
 #### KeyStoreWrapper
 
 Update `createAndroidKeyStoreSymmetricKey` function, that now will allow us to create key for Confirm Credentials:
@@ -920,5 +932,4 @@ fun validateConfirmCredentialsAuthentication(): Boolean {
 That's it, now we can validate key with user Lock Screen password. It's time for testing, please run application on
 AVD 23 and validate that everything is working as expected.
 
-Thanks for going through this workshop. Hope you had some fun and learned something interesting during the session.
- Keep your data secured! 
+Thanks for going through this workshop. Hope you had some fun and learned something interesting during the session. Keep your data secured! 
